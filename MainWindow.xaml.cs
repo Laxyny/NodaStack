@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace NodaStack
 {
@@ -41,6 +43,7 @@ namespace NodaStack
                     apacheIsRunning = true;
                     Dispatcher.Invoke(() => StartApacheButton.Content = "Stop Apache");
                     Log("Apache container started.");
+                    UpdateIndicator("apache", apacheIsRunning);
                 });
             }
             else
@@ -51,6 +54,7 @@ namespace NodaStack
                     apacheIsRunning = false;
                     Dispatcher.Invoke(() => StartApacheButton.Content = "Start Apache");
                     Log("Apache container stopped.");
+                    UpdateIndicator("apache", apacheIsRunning);
                 });
             }
         }
@@ -68,6 +72,7 @@ namespace NodaStack
                     phpIsRunning = true;
                     Dispatcher.Invoke(() => StartPHPButton.Content = "Stop PHP");
                     Log("PHP container started.");
+                    UpdateIndicator("php", phpIsRunning);
                 });
             }
             else
@@ -78,6 +83,7 @@ namespace NodaStack
                     phpIsRunning = false;
                     Dispatcher.Invoke(() => StartPHPButton.Content = "Start PHP");
                     Log("PHP container stopped.");
+                    UpdateIndicator("php", phpIsRunning);
                 });
             }
         }
@@ -95,8 +101,8 @@ namespace NodaStack
                     mysqlIsRunning = true;
                     Dispatcher.Invoke(() => StartMySQLButton.Content = "Stop MySQL");
                     Log("MySQL container started.");
+                    UpdateIndicator("mysql", mysqlIsRunning);
 
-                    StartPhpMyAdmin();
                 });
             }
             else
@@ -107,6 +113,7 @@ namespace NodaStack
                     phpmyadminIsRunning = false;
                     Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Start phpMyAdmin");
                     Log("phpMyAdmin container stopped.");
+                    UpdateIndicator("phpmyadmin", phpmyadminIsRunning);
 
                     Log("Stopping nodastack_mysql...");
                     RunProcess("docker stop nodastack_mysql", () =>
@@ -114,15 +121,22 @@ namespace NodaStack
                         mysqlIsRunning = false;
                         Dispatcher.Invoke(() => StartMySQLButton.Content = "Start MySQL");
                         Log("MySQL container stopped.");
+                        UpdateIndicator("mysql", mysqlIsRunning);
                     });
                 });
             }
         }
 
-        private async void StartPhpMyAdmin()
+        private async void StartPhpMyAdmin_Click(object sender, RoutedEventArgs e)
         {
             if (!phpmyadminIsRunning)
             {
+                if (!mysqlIsRunning)
+                {
+                    Log("MySQL must be running before starting phpMyAdmin.");
+                    return;
+                }
+
                 Log("Building nodastack_phpmyadmin...");
                 await RunProcessAsync("docker build -t nodastack_phpmyadmin ./Docker/phpmyadmin");
 
@@ -132,13 +146,102 @@ namespace NodaStack
                         "nodastack_phpmyadmin", () =>
                 {
                     phpmyadminIsRunning = true;
+                    UpdateIndicator("phpmyadmin", true);
                     Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Stop phpMyAdmin");
                     Log("phpMyAdmin container started.");
+                    UpdateIndicator("phpmyadmin", phpmyadminIsRunning);
                 });
             }
             else
             {
-                Log("phpMyAdmin container is already running.");
+                Log("Stopping nodastack_phpmyadmin...");
+                RunProcess("docker stop nodastack_phpmyadmin", () =>
+                {
+                    phpmyadminIsRunning = false;
+                    UpdateIndicator("phpmyadmin", false);
+                    Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Start phpMyAdmin");
+                    Log("phpMyAdmin container stopped.");
+                    UpdateIndicator("phpmyadmin", phpmyadminIsRunning);
+                });
+            }
+        }
+
+        private void OpenApache_Click(object sender, RoutedEventArgs e)
+        {
+            if (apacheIsRunning)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "http://localhost:8080",
+                        UseShellExecute = true
+                    });
+                    Log("Opening Apache in browser...");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error opening Apache: {ex.Message}");
+                }
+            }
+        }
+
+        private void OpenPhp_Click(object sender, RoutedEventArgs e)
+        {
+            if (phpIsRunning)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "http://localhost:8000",
+                        UseShellExecute = true
+                    });
+                    Log("Opening PHP in browser...");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error opening PHP: {ex.Message}");
+                }
+            }
+        }
+
+        private void OpenMySql_Click(object sender, RoutedEventArgs e)
+        {
+            if (mysqlIsRunning)
+            {
+                try
+                {
+                    // Copie la chaîne de connexion dans le presse-papiers
+                    string connectionString = "Server=localhost;Port=3306;Database=nodastack;Uid=root;Pwd=;";
+                    System.Windows.Clipboard.SetText(connectionString);
+                    Log("MySQL connection string copied to clipboard!");
+                    Log("Connection: Server=localhost;Port=3306;Database=nodastack;Uid=root;Pwd=;");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error copying connection string: {ex.Message}");
+                }
+            }
+        }
+
+        private void OpenPhpMyAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            if (phpmyadminIsRunning)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "http://localhost:8081",
+                        UseShellExecute = true
+                    });
+                    Log("Opening phpMyAdmin in browser...");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error opening phpMyAdmin: {ex.Message}");
+                }
             }
         }
 
@@ -238,6 +341,7 @@ namespace NodaStack
                         if (isRunning)
                         {
                             apacheIsRunning = true;
+                            UpdateIndicator("apache", true);
                             Dispatcher.Invoke(() => StartApacheButton.Content = "Stop Apache");
                             Log("Apache container already running.");
                         }
@@ -249,6 +353,7 @@ namespace NodaStack
                         if (isRunning)
                         {
                             phpIsRunning = true;
+                            UpdateIndicator("php", true);
                             Dispatcher.Invoke(() => StartPHPButton.Content = "Stop PHP");
                             Log("PHP container already running.");
                         }
@@ -260,6 +365,7 @@ namespace NodaStack
                         if (isRunning)
                         {
                             mysqlIsRunning = true;
+                            UpdateIndicator("mysql", true);
                             Dispatcher.Invoke(() => StartMySQLButton.Content = "Stop MySQL");
                             Log("MySQL container already running.");
                         }
@@ -271,6 +377,7 @@ namespace NodaStack
                         if (isRunning)
                         {
                             phpmyadminIsRunning = true;
+                            UpdateIndicator("phpmyadmin", true);
                             Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Stop phpMyAdmin");
                             Log("phpMyAdmin container already running.");
                         }
@@ -309,6 +416,34 @@ namespace NodaStack
             {
                 Log($"Exception during {containerName} status check: " + ex.Message);
             }
+        }
+
+        private void UpdateIndicator(string serviceName, bool isRunning)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Brush color = isRunning ? Brushes.LimeGreen : Brushes.Red;
+
+                switch (serviceName.ToLower())
+                {
+                    case "apache":
+                        ApacheIndicator.Fill = color;
+                        OpenApacheButton.IsEnabled = isRunning;
+                        break;
+                    case "php":
+                        PhpIndicator.Fill = color;
+                        OpenPhpButton.IsEnabled = isRunning;
+                        break;
+                    case "mysql":
+                        MySqlIndicator.Fill = color;
+                        OpenMySqlButton.IsEnabled = isRunning;
+                        break;
+                    case "phpmyadmin":
+                        PhpMyAdminIndicator.Fill = color;
+                        OpenPhpMyAdminButton.IsEnabled = isRunning;
+                        break;
+                }
+            });
         }
     }
 }

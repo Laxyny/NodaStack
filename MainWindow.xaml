@@ -2,58 +2,180 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="NodaStack"
-        Height="400"
-        Width="600"
+        Height="500"
+        Width="800"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="10">
-        <StackPanel HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Margin="0,10,0,0">
-            <TextBlock Text="NodaStack Launcher"
-                       FontSize="22"
-                       FontWeight="Bold"
-                       Margin="0,0,0,20"
-                       HorizontalAlignment="Center"/>
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Margin="0,0,0,20">
-                <Button x:Name="StartApacheButton"
-                        Content="Start Apache"
-                        Width="120"
-                        Margin="5"
-                        Click="StartApache_Click"/>
-                <Button x:Name="StartPHPButton"
-                        Content="Start PHP"
-                        Width="120"
-                        Margin="5"
-                        Click="StartPHP_Click"/>
-                <Button x:Name="StartMySQLButton"
-                        Content="Start MySQL"
-                        Width="120"
-                        Margin="5"
-                        Click="StartMySQL_Click"/>
-                <Button x:Name="StartPhpMyAdminButton"
-                        Content="Start phpMyAdmin"
-                        Width="120"
-                        Margin="5"
-                        Click="StartMySQL_Click"/>
-            </StackPanel>
-        </StackPanel>
+        <Grid Margin="10">
+                <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Margin="0,10,0,0">
+                        <TextBlock Text="NodaStack Launcher"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,20"
+                                   HorizontalAlignment="Center"/>
 
-        <GroupBox Header="Logs"
-                  Margin="0,120,0,0">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <TextBox Name="LogBox"
-                         FontFamily="Consolas"
-                         FontSize="12"
-                         IsReadOnly="True"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         Background="Black"
-                         Foreground="White"/>
-            </ScrollViewer>
-        </GroupBox>
-    </Grid>
+                        <!-- Indicators -->
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,0,0,20">
+
+                                <!-- Apache -->
+                                <StackPanel Orientation="Vertical"
+                                            Margin="5"
+                                            Width="140">
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,0,0,5">
+                                                <Ellipse x:Name="ApacheIndicator"
+                                                         Width="12"
+                                                         Height="12"
+                                                         Fill="Red"
+                                                         Margin="0,0,5,0"/>
+                                                <TextBlock Text="Apache"
+                                                           FontSize="10"
+                                                           VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button x:Name="StartApacheButton"
+                                                Content="Start Apache"
+                                                Height="30"
+                                                Margin="0,0,0,5"
+                                                Click="StartApache_Click"/>
+                                        <TextBlock x:Name="ApachePortInfo"
+                                                   Text="Port: 8080"
+                                                   FontSize="9"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   Margin="0,0,0,3"/>
+                                        <Button x:Name="OpenApacheButton"
+                                                Content="Open in Browser"
+                                                Height="25"
+                                                FontSize="9"
+                                                Click="OpenApache_Click"
+                                                IsEnabled="False"/>
+                                </StackPanel>
+
+                                <!-- PHP -->
+                                <StackPanel Orientation="Vertical"
+                                            Margin="5"
+                                            Width="140">
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,0,0,5">
+                                                <Ellipse x:Name="PhpIndicator"
+                                                         Width="12"
+                                                         Height="12"
+                                                         Fill="Red"
+                                                         Margin="0,0,5,0"/>
+                                                <TextBlock Text="PHP"
+                                                           FontSize="10"
+                                                           VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button x:Name="StartPHPButton"
+                                                Content="Start PHP"
+                                                Height="30"
+                                                Margin="0,0,0,5"
+                                                Click="StartPHP_Click"/>
+                                        <TextBlock x:Name="PhpPortInfo"
+                                                   Text="Port: 8000"
+                                                   FontSize="9"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   Margin="0,0,0,3"/>
+                                        <Button x:Name="OpenPhpButton"
+                                                Content="Open in Browser"
+                                                Height="25"
+                                                FontSize="9"
+                                                Click="OpenPhp_Click"
+                                                IsEnabled="False"/>
+                                </StackPanel>
+
+                                <!-- MySQL -->
+                                <StackPanel Orientation="Vertical"
+                                            Margin="5"
+                                            Width="140">
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,0,0,5">
+                                                <Ellipse x:Name="MySqlIndicator"
+                                                         Width="12"
+                                                         Height="12"
+                                                         Fill="Red"
+                                                         Margin="0,0,5,0"/>
+                                                <TextBlock Text="MySQL"
+                                                           FontSize="10"
+                                                           VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button x:Name="StartMySQLButton"
+                                                Content="Start MySQL"
+                                                Height="30"
+                                                Margin="0,0,0,5"
+                                                Click="StartMySQL_Click"/>
+                                        <TextBlock x:Name="MySqlPortInfo"
+                                                   Text="Port: 3306"
+                                                   FontSize="9"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   Margin="0,0,0,3"/>
+                                        <Button x:Name="OpenMySqlButton"
+                                                Content="Database Access"
+                                                Height="25"
+                                                FontSize="9"
+                                                Click="OpenMySql_Click"
+                                                IsEnabled="False"/>
+                                </StackPanel>
+
+                                <!-- phpMyAdmin -->
+                                <StackPanel Orientation="Vertical"
+                                            Margin="5"
+                                            Width="140">
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,0,0,5">
+                                                <Ellipse x:Name="PhpMyAdminIndicator"
+                                                         Width="12"
+                                                         Height="12"
+                                                         Fill="Red"
+                                                         Margin="0,0,5,0"/>
+                                                <TextBlock Text="phpMyAdmin"
+                                                           FontSize="10"
+                                                           VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button x:Name="StartPhpMyAdminButton"
+                                                Content="Start phpMyAdmin"
+                                                Height="30"
+                                                Margin="0,0,0,5"
+                                                Click="StartPhpMyAdmin_Click"/>
+                                        <TextBlock x:Name="PhpMyAdminPortInfo"
+                                                   Text="Port: 8081"
+                                                   FontSize="9"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   Margin="0,0,0,3"/>
+                                        <Button x:Name="OpenPhpMyAdminButton"
+                                                Content="Open in Browser"
+                                                Height="25"
+                                                FontSize="9"
+                                                Click="OpenPhpMyAdmin_Click"
+                                                IsEnabled="False"/>
+                                </StackPanel>
+                        </StackPanel>
+                </StackPanel>
+
+                <GroupBox Header="Logs"
+                          Margin="0,200,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBox Name="LogBox"
+                                         FontFamily="Consolas"
+                                         FontSize="12"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Background="Black"
+                                         Foreground="White"/>
+                        </ScrollViewer>
+                </GroupBox>
+        </Grid>
 </Window>
