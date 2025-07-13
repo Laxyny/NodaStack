@@ -11,6 +11,7 @@ namespace NodaStack
         private bool apacheIsRunning = false;
         private bool phpIsRunning = false;
         private bool mysqlIsRunning = false;
+        private bool phpmyadminIsRunning = false;
 
         public MainWindow()
         {
@@ -81,7 +82,6 @@ namespace NodaStack
             }
         }
 
-
         private async void StartMySQL_Click(object sender, RoutedEventArgs e)
         {
             if (!mysqlIsRunning)
@@ -95,20 +95,52 @@ namespace NodaStack
                     mysqlIsRunning = true;
                     Dispatcher.Invoke(() => StartMySQLButton.Content = "Stop MySQL");
                     Log("MySQL container started.");
+
+                    StartPhpMyAdmin();
                 });
             }
             else
             {
-                Log("Stopping nodastack_mysql container...");
-                RunProcess("docker stop nodastack_mysql", () =>
+                Log("Stopping nodastack_phpmyadmin...");
+                RunProcess("docker stop nodastack_phpmyadmin", () =>
                 {
-                    mysqlIsRunning = false;
-                    Dispatcher.Invoke(() => StartMySQLButton.Content = "Start MySQL");
-                    Log("MySQL container stopped.");
+                    phpmyadminIsRunning = false;
+                    Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Start phpMyAdmin");
+                    Log("phpMyAdmin container stopped.");
+
+                    Log("Stopping nodastack_mysql...");
+                    RunProcess("docker stop nodastack_mysql", () =>
+                    {
+                        mysqlIsRunning = false;
+                        Dispatcher.Invoke(() => StartMySQLButton.Content = "Start MySQL");
+                        Log("MySQL container stopped.");
+                    });
                 });
             }
         }
 
+        private async void StartPhpMyAdmin()
+        {
+            if (!phpmyadminIsRunning)
+            {
+                Log("Building nodastack_phpmyadmin...");
+                await RunProcessAsync("docker build -t nodastack_phpmyadmin ./Docker/phpmyadmin");
+
+                Log("Launching nodastack_phpmyadmin container...");
+                RunProcess("docker run -d --rm -p 8081:80 --name nodastack_phpmyadmin --link nodastack_mysql " +
+                        "-e PMA_HOST=nodastack_mysql -e PMA_USER=root -e PMA_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=yes " +
+                        "nodastack_phpmyadmin", () =>
+                {
+                    phpmyadminIsRunning = true;
+                    Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Stop phpMyAdmin");
+                    Log("phpMyAdmin container started.");
+                });
+            }
+            else
+            {
+                Log("phpMyAdmin container is already running.");
+            }
+        }
 
         private void RunProcess(string command, Action? onSuccess = null)
         {
@@ -131,7 +163,11 @@ namespace NodaStack
                 };
                 process.ErrorDataReceived += (s, e) =>
                 {
-                    if (e.Data != null) Log("ERROR: " + e.Data);
+                    if (e.Data != null && !string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        if (!e.Data.Contains("No such container") || !command.Contains("docker stop"))
+                            Log("ERROR: " + e.Data);
+                    }
                 };
                 process.Exited += (s, e) =>
                 {
@@ -170,7 +206,7 @@ namespace NodaStack
                     process.OutputDataReceived += (s, e) => { if (e.Data != null) Log(e.Data); };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        if (e.Data != null)
+                        if (e.Data != null && !string.IsNullOrWhiteSpace(e.Data))
                         {
                             if (!e.Data.StartsWith("#") && !e.Data.Contains("DONE") && !e.Data.Contains("exporting"))
                                 Log("ERROR: " + e.Data);
@@ -196,32 +232,83 @@ namespace NodaStack
             {
                 try
                 {
-                    var psi = new ProcessStartInfo
+                    // Apache
+                    CheckContainerStatus("nodastack_apache", (isRunning) =>
                     {
-                        FileName = "cmd.exe",
-                        Arguments = "/C docker ps --filter \"name=nodastack_apache\" --format \"{{.Names}}\"",
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
+                        if (isRunning)
+                        {
+                            apacheIsRunning = true;
+                            Dispatcher.Invoke(() => StartApacheButton.Content = "Stop Apache");
+                            Log("Apache container already running.");
+                        }
+                    });
 
-                    var process = new Process { StartInfo = psi };
-                    process.Start();
-
-                    string output = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-
-                    if (!string.IsNullOrEmpty(output) && output.Contains("nodastack_apache"))
+                    // PHP
+                    CheckContainerStatus("nodastack_php", (isRunning) =>
                     {
-                        apacheIsRunning = true;
-                        Log("Apache container already running.");
-                    }
+                        if (isRunning)
+                        {
+                            phpIsRunning = true;
+                            Dispatcher.Invoke(() => StartPHPButton.Content = "Stop PHP");
+                            Log("PHP container already running.");
+                        }
+                    });
+
+                    // MySQL
+                    CheckContainerStatus("nodastack_mysql", (isRunning) =>
+                    {
+                        if (isRunning)
+                        {
+                            mysqlIsRunning = true;
+                            Dispatcher.Invoke(() => StartMySQLButton.Content = "Stop MySQL");
+                            Log("MySQL container already running.");
+                        }
+                    });
+
+                    // phpMyAdmin
+                    CheckContainerStatus("nodastack_phpmyadmin", (isRunning) =>
+                    {
+                        if (isRunning)
+                        {
+                            phpmyadminIsRunning = true;
+                            Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Stop phpMyAdmin");
+                            Log("phpMyAdmin container already running.");
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
                     Log("Exception during status check: " + ex.Message);
                 }
             });
+        }
+
+        private void CheckContainerStatus(string containerName, Action<bool> callback)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/C docker ps --filter \"name=^{containerName}$\" --format \"{{{{.Names}}}}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var process = new Process { StartInfo = psi };
+                process.Start();
+
+                string output = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit();
+
+                bool isRunning = !string.IsNullOrEmpty(output) && output.Equals(containerName, StringComparison.OrdinalIgnoreCase);
+                callback(isRunning);
+            }
+            catch (Exception ex)
+            {
+                Log($"Exception during {containerName} status check: " + ex.Message);
+            }
         }
     }
 }

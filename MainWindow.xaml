@@ -33,6 +33,11 @@
                         Width="120"
                         Margin="5"
                         Click="StartMySQL_Click"/>
+                <Button x:Name="StartPhpMyAdminButton"
+                        Content="Start phpMyAdmin"
+                        Width="120"
+                        Margin="5"
+                        Click="StartMySQL_Click"/>
             </StackPanel>
         </StackPanel>
 
