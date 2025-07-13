@@ -24,8 +24,6 @@ obj/
 *.temp
 
 # Docker artifacts
-**/Dockerfile
-**/docker-compose*
 **/docker-data/
 
 # OS-specific
