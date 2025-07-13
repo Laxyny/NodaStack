@@ -1,0 +1,28 @@
+{
+  "Ports": {
+    "Apache": 1000,
+    "PHP": 8000,
+    "MySQL": 3306,
+    "phpMyAdmin": 8081
+  },
+  "Versions": {
+    "PHP": "8.2",
+    "MySQL": "8.0",
+    "Apache": "2.4"
+  },
+  "Settings": {
+    "AutoStartServices": false,
+    "ShowNotifications": true,
+    "EnableLogging": true,
+    "DarkMode": false,
+    "DefaultBrowser": "default",
+    "AutoRefreshProjects": true,
+    "LogRetentionDays": 7,
+    "ProjectsPath": "www",
+    "EnableSsl": false,
+    "MySqlPassword": "",
+    "MySqlDefaultDatabase": "nodastack",
+    "AutoCheckUpdates": true,
+    "Language": "en"
+  }
+}

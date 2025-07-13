@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.IO;
 
 namespace NodaStack
 {
@@ -15,13 +16,18 @@ namespace NodaStack
         private bool mysqlIsRunning = false;
         private bool phpmyadminIsRunning = false;
         private ProjectManager projectManager;
+        private ConfigurationManager configManager;
 
         public MainWindow()
         {
             InitializeComponent();
+            configManager = new ConfigurationManager();
             projectManager = new ProjectManager();
+
+            ApplyConfiguration();
             CheckInitialContainerStatus();
             RefreshProjectsList();
+
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
         }
 
@@ -34,19 +40,28 @@ namespace NodaStack
             });
         }
 
+        private void Configuration_Click(object sender, RoutedEventArgs e)
+        {
+            OpenConfiguration();
+        }
+
         private async void StartApache_Click(object sender, RoutedEventArgs e)
         {
+            var apachePort = configManager.Configuration.Ports["Apache"];
+            var currentDir = Directory.GetCurrentDirectory();
+            var wwwPath = Path.Combine(currentDir, "www");
+
             if (!apacheIsRunning)
             {
                 Log("Building nodastack_apache...");
                 await RunProcessAsync("docker build -t nodastack_apache ./Docker/apache");
 
                 Log("Launching nodastack_apache container...");
-                RunProcess("docker run -d --rm -p 8080:80 --name nodastack_apache nodastack_apache", () =>
+                RunProcess($"docker run -d --rm -p {apachePort}:80 -v \"{wwwPath}:/var/www/html\" --name nodastack_apache nodastack_apache", () =>
                 {
                     apacheIsRunning = true;
                     Dispatcher.Invoke(() => StartApacheButton.Content = "Stop Apache");
-                    Log("Apache container started.");
+                    Log($"Apache container started on port {apachePort}.");
                     UpdateIndicator("apache", apacheIsRunning);
                 });
             }
@@ -65,17 +80,22 @@ namespace NodaStack
 
         private async void StartPHP_Click(object sender, RoutedEventArgs e)
         {
+            var phpPort = configManager.Configuration.Ports["PHP"];
+            var currentDir = Directory.GetCurrentDirectory();
+            var wwwPath = Path.Combine(currentDir, "www");
+
             if (!phpIsRunning)
             {
                 Log("Building nodastack_php...");
                 await RunProcessAsync("docker build -t nodastack_php ./Docker/php");
 
                 Log("Launching nodastack_php container...");
-                RunProcess("docker run -d --rm -p 8000:8000 --name nodastack_php nodastack_php", () =>
+                // Monter le volume www et exposer le port 8000
+                RunProcess($"docker run -d --rm -p {phpPort}:8000 -v \"{wwwPath}:/var/www/html\" --name nodastack_php nodastack_php", () =>
                 {
                     phpIsRunning = true;
                     Dispatcher.Invoke(() => StartPHPButton.Content = "Stop PHP");
-                    Log("PHP container started.");
+                    Log($"PHP container started on port {phpPort}.");
                     UpdateIndicator("php", phpIsRunning);
                 });
             }
@@ -94,17 +114,19 @@ namespace NodaStack
 
         private async void StartMySQL_Click(object sender, RoutedEventArgs e)
         {
+            var mysqlPort = configManager.Configuration.Ports["MySQL"];
+
             if (!mysqlIsRunning)
             {
                 Log("Building nodastack_mysql...");
                 await RunProcessAsync("docker build -t nodastack_mysql ./Docker/mysql");
 
                 Log("Launching nodastack_mysql container...");
-                RunProcess("docker run -d --rm -p 3306:3306 --name nodastack_mysql nodastack_mysql", () =>
+                RunProcess($"docker run -d --rm -p {mysqlPort}:3306 --name nodastack_mysql nodastack_mysql", () =>
                 {
                     mysqlIsRunning = true;
                     Dispatcher.Invoke(() => StartMySQLButton.Content = "Stop MySQL");
-                    Log("MySQL container started.");
+                    Log($"MySQL container started on port {mysqlPort}.");
                     UpdateIndicator("mysql", mysqlIsRunning);
 
                 });
@@ -133,6 +155,8 @@ namespace NodaStack
 
         private async void StartPhpMyAdmin_Click(object sender, RoutedEventArgs e)
         {
+            var phpmyadminPort = configManager.Configuration.Ports["phpMyAdmin"];
+
             if (!phpmyadminIsRunning)
             {
                 if (!mysqlIsRunning)
@@ -145,14 +169,14 @@ namespace NodaStack
                 await RunProcessAsync("docker build -t nodastack_phpmyadmin ./Docker/phpmyadmin");
 
                 Log("Launching nodastack_phpmyadmin container...");
-                RunProcess("docker run -d --rm -p 8081:80 --name nodastack_phpmyadmin --link nodastack_mysql " +
+                RunProcess($"docker run -d --rm -p {phpmyadminPort}:80 --name nodastack_phpmyadmin --link nodastack_mysql " +
                         "-e PMA_HOST=nodastack_mysql -e PMA_USER=root -e PMA_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=yes " +
                         "nodastack_phpmyadmin", () =>
                 {
                     phpmyadminIsRunning = true;
                     UpdateIndicator("phpmyadmin", true);
                     Dispatcher.Invoke(() => StartPhpMyAdminButton.Content = "Stop phpMyAdmin");
-                    Log("phpMyAdmin container started.");
+                    Log($"phpMyAdmin container started on port {phpmyadminPort}.");
                     UpdateIndicator("phpmyadmin", phpmyadminIsRunning);
                 });
             }
@@ -176,9 +200,10 @@ namespace NodaStack
             {
                 try
                 {
+                    var apachePort = configManager.Configuration.Ports["Apache"];
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "http://localhost:8080",
+                        FileName = $"http://localhost:{apachePort}",
                         UseShellExecute = true
                     });
                     Log("Opening Apache in browser...");
@@ -196,9 +221,10 @@ namespace NodaStack
             {
                 try
                 {
+                    var phpPort = configManager.Configuration.Ports["PHP"];
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "http://localhost:8000",
+                        FileName = $"http://localhost:{phpPort}",
                         UseShellExecute = true
                     });
                     Log("Opening PHP in browser...");
@@ -216,10 +242,11 @@ namespace NodaStack
             {
                 try
                 {
-                    string connectionString = "Server=localhost;Port=3306;Database=nodastack;Uid=root;Pwd=;";
+                    var mysqlPort = configManager.Configuration.Ports["MySQL"];
+                    string connectionString = $"Server=localhost;Port={mysqlPort};Database=nodastack;Uid=root;Pwd=;";
                     System.Windows.Clipboard.SetText(connectionString);
                     Log("MySQL connection string copied to clipboard!");
-                    Log("Connection: Server=localhost;Port=3306;Database=nodastack;Uid=root;Pwd=;");
+                    Log($"Connection: Server=localhost;Port={mysqlPort};Database=nodastack;Uid=root;Pwd=;");
                 }
                 catch (Exception ex)
                 {
@@ -234,9 +261,10 @@ namespace NodaStack
             {
                 try
                 {
+                    var phpmyadminPort = configManager.Configuration.Ports["phpMyAdmin"];
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "http://localhost:8081",
+                        FileName = $"http://localhost:{phpmyadminPort}",
                         UseShellExecute = true
                     });
                     Log("Opening phpMyAdmin in browser...");
@@ -582,6 +610,35 @@ namespace NodaStack
                         MessageBox.Show("Failed to delete project.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
+            }
+        }
+
+        private void ApplyConfiguration()
+        {
+            var config = configManager.Configuration;
+
+            ApachePortInfo.Text = $"Port: {config.Ports["Apache"]}";
+            PhpPortInfo.Text = $"Port: {config.Ports["PHP"]}";
+            MySqlPortInfo.Text = $"Port: {config.Ports["MySQL"]}";
+            PhpMyAdminPortInfo.Text = $"Port: {config.Ports["phpMyAdmin"]}";
+
+            if (config.Settings.AutoStartServices)
+            {
+                Log("Auto-starting services...");
+            }
+
+            Log($"Configuration loaded - Apache:{config.Ports["Apache"]}, PHP:{config.Ports["PHP"]}, MySQL:{config.Ports["MySQL"]}");
+        }
+
+        private void OpenConfiguration()
+        {
+            var configWindow = new ConfigurationWindow(configManager);
+            configWindow.Owner = this;
+
+            if (configWindow.ShowDialog() == true)
+            {
+                ApplyConfiguration();
+                Log("Configuration updated successfully");
             }
         }
     }

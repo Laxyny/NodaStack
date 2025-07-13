@@ -2,7 +2,10 @@ FROM php:8.2-apache
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-COPY ./index.php /var/www/html/index.php
+RUN a2enmod rewrite
 
-RUN mkdir -p /var/www/html/www
-VOLUME ["/var/www/html/www"]
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
+
+WORKDIR /var/www/html
+
+EXPOSE 80
