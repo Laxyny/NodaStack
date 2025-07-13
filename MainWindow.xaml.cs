@@ -10,19 +10,29 @@ namespace NodaStack
 {
     public partial class MainWindow : Window
     {
-
         private bool apacheIsRunning = false;
         private bool phpIsRunning = false;
         private bool mysqlIsRunning = false;
         private bool phpmyadminIsRunning = false;
         private ProjectManager projectManager;
         private ConfigurationManager configManager;
+        private LogManager logManager;
 
         public MainWindow()
         {
             InitializeComponent();
             configManager = new ConfigurationManager();
             projectManager = new ProjectManager();
+            logManager = new LogManager();
+
+            logManager.OnLogAdded += (entry) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    LogBox.AppendText($"[{entry.Timestamp:HH:mm:ss}] {entry.Message}{Environment.NewLine}");
+                    LogBox.ScrollToEnd();
+                });
+            };
 
             ApplyConfiguration();
             CheckInitialContainerStatus();
@@ -31,18 +41,29 @@ namespace NodaStack
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
         }
 
-        private void Log(string message)
+        private void Log(string message, LogLevel level = LogLevel.Info, string service = "System")
         {
-            Dispatcher.Invoke(() =>
-            {
-                LogBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
-                LogBox.ScrollToEnd();
-            });
+            logManager.Log(message, level, service);
         }
 
         private void Configuration_Click(object sender, RoutedEventArgs e)
         {
             OpenConfiguration();
+        }
+
+        private void Monitoring_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var monitoringWindow = new MonitoringWindow(logManager);
+                monitoringWindow.Owner = this;
+                monitoringWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                Log($"Error opening monitoring window: {ex.Message}", LogLevel.Error);
+                MessageBox.Show($"Error opening monitoring window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void StartApache_Click(object sender, RoutedEventArgs e)

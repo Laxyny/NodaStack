@@ -30,18 +30,15 @@ namespace NodaStack
         {
             var config = configManager.Configuration;
 
-            // Charger les ports
             ApachePortTextBox.Text = config.Ports["Apache"].ToString();
             PhpPortTextBox.Text = config.Ports["PHP"].ToString();
             MySqlPortTextBox.Text = config.Ports["MySQL"].ToString();
             PhpMyAdminPortTextBox.Text = config.Ports["phpMyAdmin"].ToString();
 
-            // Charger les versions
             SetComboBoxValue(PhpVersionComboBox, config.Versions["PHP"]);
             SetComboBoxValue(MySqlVersionComboBox, config.Versions["MySQL"]);
             SetComboBoxValue(ApacheVersionComboBox, config.Versions["Apache"]);
 
-            // Charger les paramètres
             AutoStartServicesCheckBox.IsChecked = config.Settings.AutoStartServices;
             ShowNotificationsCheckBox.IsChecked = config.Settings.ShowNotifications;
             EnableLoggingCheckBox.IsChecked = config.Settings.EnableLogging;
@@ -52,10 +49,9 @@ namespace NodaStack
             MySqlDefaultDbTextBox.Text = config.Settings.MySqlDefaultDatabase;
             ProjectsPathTextBox.Text = config.Settings.ProjectsPath;
 
-            // Vérifier les ports de manière asynchrone
             _ = Task.Run(async () =>
             {
-                await Task.Delay(100); // Laisser l'UI se charger
+                await Task.Delay(100);
                 Dispatcher.Invoke(() => CheckPorts_Click(null, null));
             });
         }
@@ -74,7 +70,6 @@ namespace NodaStack
 
         private void SetupEventHandlers()
         {
-            // Délai pour éviter les vérifications trop fréquentes
             ApachePortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             PhpPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             MySqlPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
@@ -97,14 +92,13 @@ namespace NodaStack
                         CheckPortStatus(PhpMyAdminPortTextBox, PhpMyAdminPortStatus);
                     });
                 });
-            }, null, 500, Timeout.Infinite); // Attendre 500ms avant de vérifier
+            }, null, 500, Timeout.Infinite);
         }
 
         private void CheckPortStatus(TextBox portTextBox, TextBlock statusTextBlock)
         {
             if (int.TryParse(portTextBox.Text, out int port) && port > 0 && port <= 65535)
             {
-                // Vérification asynchrone des ports
                 Task.Run(() =>
                 {
                     bool isAvailable = configManager.IsPortAvailable(port);
@@ -135,7 +129,6 @@ namespace NodaStack
 
         private void CheckPorts_Click(object? sender, RoutedEventArgs? e)
         {
-            // Vérification asynchrone de tous les ports
             Task.Run(() =>
             {
                 Dispatcher.Invoke(() =>
@@ -208,7 +201,6 @@ namespace NodaStack
                     return;
                 }
 
-                // Sauvegarder les ports
                 var newPorts = new Dictionary<string, int>
                 {
                     { "Apache", int.Parse(ApachePortTextBox.Text) },
@@ -218,7 +210,6 @@ namespace NodaStack
                 };
                 configManager.UpdatePorts(newPorts);
 
-                // Sauvegarder les versions
                 var newVersions = new Dictionary<string, string>
                 {
                     { "PHP", GetComboBoxValue(PhpVersionComboBox) },
@@ -227,7 +218,6 @@ namespace NodaStack
                 };
                 configManager.UpdateVersions(newVersions);
 
-                // Sauvegarder les paramètres
                 var newSettings = new NodaStackSettings
                 {
                     AutoStartServices = AutoStartServicesCheckBox.IsChecked ?? false,
