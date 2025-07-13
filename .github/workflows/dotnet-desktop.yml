@@ -59,3 +59,67 @@ jobs:
       with:
         name: NodaStack-Release-Package
         path: NodaStack-Release.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+      
+    - name: Generate version
+      id: version
+      run: |
+        # Get current date for version
+        VERSION="v$(date +'%Y.%m.%d')-build.${{ github.run_number }}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag_name=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Download Release Package
+      uses: actions/download-artifact@v4
+      with:
+        name: NodaStack-Release-Package
+        path: ./release-assets/
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.tag_name }}
+        name: NodaStack ${{ steps.version.outputs.version }}
+        body: |
+          ## NodaStack Release ${{ steps.version.outputs.version }}
+          
+          ### Installation
+          1. Download NodaStack-Release.zip
+          2. Extract the archive
+          3. Run NodaStack.exe
+          
+          ### Requirements
+          - Windows 10/11 (x64)
+          - .NET 9 Runtime (automatically installed if needed)
+          - Docker Desktop (for developers)
+          
+          ### Features
+          - Modern graphical interface
+          - Apache, PHP, MySQL management
+          - Docker containers integration
+          - Visual status indicators
+          - Real-time logging
+          
+          ### Technical Details
+          - Build: ${{ github.run_number }}
+          - Commit: ${{ github.sha }}
+          - Branch: ${{ github.ref_name }}
+          
+          **Recommended download:** NodaStack-Release.zip
+        files: ./release-assets/NodaStack-Release.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
