@@ -14,11 +14,15 @@ namespace NodaStack
         private bool phpIsRunning = false;
         private bool mysqlIsRunning = false;
         private bool phpmyadminIsRunning = false;
+        private ProjectManager projectManager;
 
         public MainWindow()
         {
             InitializeComponent();
+            projectManager = new ProjectManager();
             CheckInitialContainerStatus();
+            RefreshProjectsList();
+            ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
         }
 
         private void Log(string message)
@@ -212,7 +216,6 @@ namespace NodaStack
             {
                 try
                 {
-                    // Copie la chaîne de connexion dans le presse-papiers
                     string connectionString = "Server=localhost;Port=3306;Database=nodastack;Uid=root;Pwd=;";
                     System.Windows.Clipboard.SetText(connectionString);
                     Log("MySQL connection string copied to clipboard!");
@@ -429,10 +432,12 @@ namespace NodaStack
                     case "apache":
                         ApacheIndicator.Fill = color;
                         OpenApacheButton.IsEnabled = isRunning;
+                        ViewApacheButton.IsEnabled = isRunning && ProjectsListView.SelectedItem != null;
                         break;
                     case "php":
                         PhpIndicator.Fill = color;
                         OpenPhpButton.IsEnabled = isRunning;
+                        ViewPhpButton.IsEnabled = isRunning && ProjectsListView.SelectedItem != null;
                         break;
                     case "mysql":
                         MySqlIndicator.Fill = color;
@@ -444,6 +449,140 @@ namespace NodaStack
                         break;
                 }
             });
+        }
+
+        private void RefreshProjectsList()
+        {
+            var projects = projectManager.GetProjects();
+            ProjectsListView.ItemsSource = projects;
+
+            Log($"Found {projects.Count} project(s) in www/ directory");
+        }
+
+        private void ProjectsListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            bool hasSelection = ProjectsListView.SelectedItem != null;
+            OpenProjectButton.IsEnabled = hasSelection;
+            ViewApacheButton.IsEnabled = hasSelection && apacheIsRunning;
+            ViewPhpButton.IsEnabled = hasSelection && phpIsRunning;
+            DeleteProjectButton.IsEnabled = hasSelection;
+        }
+
+        private void NewProjectTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (NewProjectTextBox.Text == "Project name..." && NewProjectTextBox.Foreground == Brushes.Gray)
+            {
+                NewProjectTextBox.Text = "";
+                NewProjectTextBox.Foreground = Brushes.Black;
+            }
+        }
+
+        private void NewProjectTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(NewProjectTextBox.Text))
+            {
+                NewProjectTextBox.Text = "Project name...";
+                NewProjectTextBox.Foreground = Brushes.Gray;
+            }
+        }
+
+        private void CreateProject_Click(object sender, RoutedEventArgs e)
+        {
+            var projectName = NewProjectTextBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(projectName) || projectName == "Project name...")
+            {
+                MessageBox.Show("Please enter a project name.", "Invalid Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (projectManager.CreateProject(projectName))
+            {
+                Log($"Project '{projectName}' created successfully");
+                NewProjectTextBox.Text = "Project name...";
+                NewProjectTextBox.Foreground = Brushes.Gray;
+                RefreshProjectsList();
+            }
+            else
+            {
+                Log($"Failed to create project '{projectName}' (already exists or invalid name)");
+                MessageBox.Show("Failed to create project. It may already exist or the name is invalid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void RefreshProjects_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshProjectsList();
+        }
+
+        private void OpenProjectsFolder_Click(object sender, RoutedEventArgs e)
+        {
+            projectManager.OpenProjectsDirectory();
+            Log("Opened projects directory in explorer");
+        }
+
+        private void OpenProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                projectManager.OpenProjectInExplorer(project.Name);
+                Log($"Opened project '{project.Name}' in explorer");
+            }
+        }
+
+        private void ViewApache_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                if (apacheIsRunning)
+                {
+                    projectManager.OpenProjectInBrowser(project.Name, true);
+                    Log($"Opening project '{project.Name}' via Apache");
+                }
+                else
+                {
+                    MessageBox.Show("Apache must be running to view projects.", "Apache Not Running", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void ViewPhp_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                if (phpIsRunning)
+                {
+                    projectManager.OpenProjectInBrowser(project.Name, false);
+                    Log($"Opening project '{project.Name}' via PHP server");
+                }
+                else
+                {
+                    MessageBox.Show("PHP server must be running to view projects.", "PHP Not Running", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void DeleteProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                var result = MessageBox.Show($"Are you sure you want to delete the project '{project.Name}'?\n\nThis action cannot be undone.",
+                                           "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    if (projectManager.DeleteProject(project.Name))
+                    {
+                        Log($"Project '{project.Name}' deleted successfully");
+                        RefreshProjectsList();
+                    }
+                    else
+                    {
+                        Log($"Failed to delete project '{project.Name}'");
+                        MessageBox.Show("Failed to delete project.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
         }
     }
 }
