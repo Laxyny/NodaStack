@@ -4,6 +4,10 @@
 **NodaStack** is a modern and user-friendly local web server manager for Windows, built with .NET (WPF).  
 It serves as a powerful alternative to XAMPP/WAMP, allowing developers to easily run Apache, PHP, and MySQL locally — with Docker under the hood.
 
+## Release
+
+[![.NET Core Desktop](https://github.com/Laxyny/NodaStack/actions/workflows/dotnet-desktop.yml/badge.svg)](https://github.com/Laxyny/NodaStack/actions/workflows/dotnet-desktop.yml)
+
 ## Features
 
 - Simple graphical interface
