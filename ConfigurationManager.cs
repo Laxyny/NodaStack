@@ -56,9 +56,13 @@ namespace NodaStack
             }
             catch (Exception)
             {
-                // Handle exceptions related to file writing, e.g., log the error or notify the user
                 Console.WriteLine("Error saving configuration. Please check file permissions or disk space.");
             }
+        }
+
+        public NodaStackConfiguration GetConfiguration()
+        {
+            return Configuration;
         }
 
         public void UpdatePorts(Dictionary<string, int> newPorts)
@@ -116,7 +120,7 @@ namespace NodaStack
         public List<int> GetAvailablePorts(int startPort = 8000, int endPort = 9000)
         {
             var availablePorts = new List<int>();
-            
+
             for (int port = startPort; port <= endPort; port++)
             {
                 if (IsPortAvailable(port))
@@ -124,7 +128,7 @@ namespace NodaStack
                     availablePorts.Add(port);
                 }
             }
-            
+
             return availablePorts;
         }
     }
@@ -147,6 +151,12 @@ namespace NodaStack
         };
 
         public NodaStackSettings Settings { get; set; } = new NodaStackSettings();
+
+        // Propriétés d'accès rapide
+        public int ApachePort => Ports.TryGetValue("Apache", out var port) ? port : 8080;
+        public int PhpPort => Ports.TryGetValue("PHP", out var port) ? port : 8000;
+        public int MySqlPort => Ports.TryGetValue("MySQL", out var port) ? port : 3306;
+        public int PhpMyAdminPort => Ports.TryGetValue("phpMyAdmin", out var port) ? port : 8081;
     }
 
     public class NodaStackSettings

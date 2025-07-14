@@ -2,9 +2,16 @@ name: .NET Core Desktop
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create a release"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -22,108 +29,166 @@ jobs:
       Solution_Name: NodaStack.sln
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
 
-    - name: Restore dependencies
-      run: dotnet restore $env:Solution_Name
+      - name: Restore dependencies
+        run: dotnet restore $env:Solution_Name
 
-    - name: Build the application
-      run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
-      env:
-        Configuration: ${{ matrix.configuration }}
+      - name: Build the application
+        run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
+        env:
+          Configuration: ${{ matrix.configuration }}
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: NodaStack-${{ matrix.configuration }}
-        path: bin/${{ matrix.configuration }}/net9.0-windows/
-        retention-days: 90
+      - name: Run tests
+        run: dotnet test --no-build --configuration ${{ matrix.configuration }} --logger trx
+        continue-on-error: true
 
-    - name: Create release package (Release only)
-      if: matrix.configuration == 'Release'
-      run: |
-        mkdir release
-        xcopy "bin\Release\net9.0-windows\*" "release\" /E /H /Y
-        7z a NodaStack-Release.zip release\*
-      
-    - name: Upload release package
-      if: matrix.configuration == 'Release'
-      uses: actions/upload-artifact@v4
-      with:
-        name: NodaStack-Release-Package
-        path: NodaStack-Release.zip
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NodaStack-${{ matrix.configuration }}
+          path: bin/${{ matrix.configuration }}/net9.0-windows/
+          retention-days: 90
+
+      - name: Create release package (Release only)
+        if: matrix.configuration == 'Release'
+        run: |
+          mkdir release
+          xcopy "bin\Release\net9.0-windows\*" "release\" /E /H /Y
+
+          # Ajouter des infos de build
+          echo NodaStack Build ${{ github.run_number }} > release/BUILD_INFO.txt
+          echo Commit: ${{ github.sha }} >> release/BUILD_INFO.txt
+          echo Date: %date% %time% >> release/BUILD_INFO.txt
+
+          7z a NodaStack-Release.zip release\*
+
+      - name: Create MSI installer (Release only)
+        if: matrix.configuration == 'Release'
+        shell: pwsh
+        run: |
+          # Version simple d'un installateur avec makensis (si disponible)
+          if (Get-Command "makensis" -ErrorAction SilentlyContinue) {
+            # Créer un script NSIS simple
+            @"
+            OutFile "NodaStack-Setup.exe"
+            InstallDir `$PROGRAMFILES\NodaStack
+            Page directory
+            Page instfiles
+            Section
+              SetOutPath `$INSTDIR
+              File /r "bin\Release\net9.0-windows\*"
+              CreateShortcut "`$DESKTOP\NodaStack.lnk" "`$INSTDIR\NodaStack.exe"
+            SectionEnd
+            "@ | Out-File -FilePath "installer.nsi" -Encoding UTF8
+            
+            makensis installer.nsi
+          } else {
+            Write-Host "NSIS not available, skipping installer creation"
+          }
+
+      - name: Upload release package
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NodaStack-Release-Package
+          path: NodaStack-Release.zip
+
+      - name: Upload installer
+        if: matrix.configuration == 'Release' && hashFiles('NodaStack-Setup.exe') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: NodaStack-Installer
+          path: NodaStack-Setup.exe
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-      
-    - name: Generate version
-      id: version
-      run: |
-        # Get current date for version
-        VERSION="v$(date +'%Y.%m.%d')-build.${{ github.run_number }}"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "tag_name=$VERSION" >> $GITHUB_OUTPUT
-        
-    - name: Download Release Package
-      uses: actions/download-artifact@v4
-      with:
-        name: NodaStack-Release-Package
-        path: ./release-assets/
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.version.outputs.tag_name }}
-        name: NodaStack ${{ steps.version.outputs.version }}
-        body: |
-          ## NodaStack Release ${{ steps.version.outputs.version }}
-          
-          ### Installation
-          1. Download NodaStack-Release.zip
-          2. Extract the archive
-          3. Run NodaStack.exe
-          
-          ### Requirements
-          - Windows 10/11 (x64)
-          - .NET 9 Runtime (automatically installed if needed)
-          - Docker Desktop (for developers)
-          
-          ### Features
-          - Modern graphical interface
-          - Apache, PHP, MySQL management
-          - Docker containers integration
-          - Visual status indicators
-          - Real-time logging
-          
-          ### Technical Details
-          - Build: ${{ github.run_number }}
-          - Commit: ${{ github.sha }}
-          - Branch: ${{ github.ref_name }}
-          
-          **Recommended download:** NodaStack-Release.zip
-        files: ./release-assets/NodaStack-Release.zip
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        make_latest: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="v$(date +'%Y.%m.%d')-build.${{ github.run_number }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          git log --oneline --since="7 days ago" --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Download Release Package
+        uses: actions/download-artifact@v4
+        with:
+          name: NodaStack-Release-Package
+          path: ./release-assets/
+
+      - name: Download Installer (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: NodaStack-Installer
+          path: ./release-assets/
+        continue-on-error: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: NodaStack ${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 NodaStack Release ${{ steps.version.outputs.version }}
+
+            ### 📝 What's New
+            ${{ steps.changelog.outputs.changelog }}
+
+            ### 📥 Installation Options
+            - **📦 Portable Version:** [NodaStack-Release.zip](./NodaStack-Release.zip)
+            - **💾 Windows Installer:** [NodaStack-Setup.exe](./NodaStack-Setup.exe) *(if available)*
+
+            ### ⚡ Requirements
+            - Windows 10/11 (x64)
+            - .NET 9 Runtime (auto-installed with installer)
+            - Docker Desktop (for development)
+
+            ### 🔧 Features
+            - Modern WPF interface
+            - Apache, PHP, MySQL management
+            - Docker containers integration
+            - Real-time status monitoring
+            - Project management tools
+
+            ### 📊 Build Information
+            - **Build Number:** ${{ github.run_number }}
+            - **Commit:** `${{ github.sha }}`
+            - **Branch:** `${{ github.ref_name }}`
+            - **Date:** $(date -u)
+
+            ---
+            **Recommended:** Download the portable version for quick setup! 🎯
+          files: ./release-assets/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

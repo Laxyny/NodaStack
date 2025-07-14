@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:NodaStack"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+         <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
     </Application.Resources>
 </Application>

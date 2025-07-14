@@ -16,12 +16,16 @@ namespace NodaStack
             EnsureProjectsDirectory();
         }
 
+        public string GetProjectsPath()
+        {
+            return ProjectsPath;
+        }
+
         private void EnsureProjectsDirectory()
         {
             if (!Directory.Exists(ProjectsPath))
             {
                 Directory.CreateDirectory(ProjectsPath);
-
                 CreateDemoProject();
             }
         }
