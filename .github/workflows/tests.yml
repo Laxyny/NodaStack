@@ -1,0 +1,27 @@
+name: Automated Tests
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start Docker services
+        run: |
+          docker-compose up -d
+
+      - name: Run integration tests
+        run: dotnet test --filter Category=Integration
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults/
