@@ -14,7 +14,7 @@
     "AutoStartServices": false,
     "ShowNotifications": true,
     "EnableLogging": true,
-    "DarkMode": false,
+    "DarkMode": true,
     "DefaultBrowser": "default",
     "AutoRefreshProjects": true,
     "LogRetentionDays": 7,
@@ -24,5 +24,9 @@
     "MySqlDefaultDatabase": "nodastack",
     "AutoCheckUpdates": true,
     "Language": "en"
-  }
+  },
+  "ApachePort": 1000,
+  "PhpPort": 8000,
+  "MySqlPort": 3306,
+  "PhpMyAdminPort": 8081
 }
