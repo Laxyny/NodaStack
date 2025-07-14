@@ -29,6 +29,9 @@
                             Command="{Binding ExitCommand}"/>
                 <KeyBinding Key="F1"
                             Command="{Binding ShowHelpCommand}"/>
+                <KeyBinding Key="B"
+                            Modifiers="Ctrl"
+                            Command="{Binding BackupCommand}"/>
         </Window.InputBindings>
 
         <Grid Margin="10">
@@ -90,6 +93,19 @@
                                                            FontSize="14"
                                                            Margin="0,0,5,0"/>
                                                 <TextBlock Text="Configuration"/>
+                                        </StackPanel>
+                                </Button>
+                                <Button x:Name="BackupButton"
+                                        Width="120"
+                                        Height="30"
+                                        Margin="5,0,0,0"
+                                        Click="BackupMenuItem_Click"
+                                        ToolTip="Ctrl+B">
+                                        <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="💾"
+                                                           FontSize="14"
+                                                           Margin="0,0,5,0"/>
+                                                <TextBlock Text="Backup"/>
                                         </StackPanel>
                                 </Button>
                         </StackPanel>

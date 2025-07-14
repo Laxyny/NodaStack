@@ -20,6 +20,7 @@ namespace NodaStack
         private LogManager logManager;
         private KeyboardShortcutManager shortcutManager;
         private StatusBarManager statusBarManager;
+        private BackupManager backupManager;
 
         public MainWindow()
         {
@@ -31,6 +32,7 @@ namespace NodaStack
             projectManager = new ProjectManager();
             logManager = new LogManager();
             shortcutManager = new KeyboardShortcutManager(this);
+            backupManager = new BackupManager(configManager, logManager);
 
             if (MainStatusBar != null)
             {
@@ -57,6 +59,18 @@ namespace NodaStack
             RefreshProjectsList();
 
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
+        }
+
+        private void OpenBackupWindow()
+        {
+            var backupWindow = new BackupWindow(backupManager, logManager);
+            backupWindow.Owner = this;
+            backupWindow.ShowDialog();
+        }
+
+        private void BackupMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            OpenBackupWindow();
         }
 
         private void SetupKeyboardShortcuts()
