@@ -26,6 +26,15 @@
 - **Real-time Monitoring**: Built-in logging and service status indicators.
 - **Lightweight & Portable**: Use the installer or just run the portable version.
 
+## 🏗️ Architecture Overview
+
+The codebase is organized into two main projects:
+
+- **NodaStack.Core** – Contains domain models shared across the application.
+- **NodaStack** – The WPF interface referencing the core library.
+
+This separation keeps core logic independent from the user interface and paves the way for additional front‑ends or services.
+
 ## 📚 Table of Contents
 
 - Installation
