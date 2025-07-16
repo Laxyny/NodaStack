@@ -130,11 +130,9 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          {
-            echo "changelog<<EOF"
-            git log --oneline --since="7 days ago" --pretty=format:"- %s (%h)"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          git log --oneline --since="7 days ago" --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Download Release Package
         uses: actions/download-artifact@v4
