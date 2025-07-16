@@ -74,25 +74,22 @@ jobs:
         if: matrix.configuration == 'Release'
         shell: pwsh
         run: |
-          # Version simple d'un installateur avec makensis (si disponible)
           if (Get-Command "makensis" -ErrorAction SilentlyContinue) {
-            # Créer un script NSIS simple
-            @"
-            OutFile "NodaStack-Setup.exe"
-            InstallDir `$PROGRAMFILES\NodaStack
-            Page directory
-            Page instfiles
-            Section
-              SetOutPath `$INSTDIR
-              File /r "bin\Release\net9.0-windows\*"
-              CreateShortcut "`$DESKTOP\NodaStack.lnk" "`$INSTDIR\NodaStack.exe"
-            SectionEnd
-            "@ | Out-File -FilePath "installer.nsi" -Encoding UTF8
-            
-            makensis installer.nsi
+            $nsisScript = "OutFile `"NodaStack-Setup.exe`"`n" +
+                          "InstallDir `"`$PROGRAMFILES\NodaStack`"`n" +
+                          "Page directory`n" +
+                          "Page instfiles`n" +
+                          "Section`n" +
+                          "  SetOutPath `"`$INSTDIR`"`n" +
+                          "  File /r `"bin\Release\net9.0-windows\*`"`n" +
+                          "  CreateShortcut `"`$DESKTOP\NodaStack.lnk`" `"`$INSTDIR\NodaStack.exe`"`n" +
+                          "SectionEnd"
+            Set-Content -Path "installer.nsi" -Value $nsisScript -Encoding UTF8;
+            makensis installer.nsi;
           } else {
             Write-Host "NSIS not available, skipping installer creation"
           }
+
 
       - name: Upload release package
         if: matrix.configuration == 'Release'
