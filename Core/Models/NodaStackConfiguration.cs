@@ -41,5 +41,6 @@ public class NodaStackSettings
     public string MySqlPassword { get; set; } = "";
     public string MySqlDefaultDatabase { get; set; } = "nodastack";
     public bool AutoCheckUpdates { get; set; } = true;
+    public bool AutoInstallUpdates { get; set; } = false;
     public string Language { get; set; } = "en";
 }

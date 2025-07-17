@@ -49,7 +49,7 @@ This separation keeps core logic independent from the user interface and paves t
 For most users, the easiest way to get started is to download the latest release.
 
 1.  Go to the [**Releases Page**](https://github.com/Laxyny/NodaStack/releases/latest).
-2.  Download the `NodaStack-Installer.exe` for a full installation or `NodaStack-Release.zip` for a portable experience.
+2.  Download the `NodaStack-Setup.exe` for a full installation or `NodaStack-Release.zip` for a portable experience.
 3.  Run the installer or extract the zip file and launch `NodaStack.exe`.
 
 **Requirements:**

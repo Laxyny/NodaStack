@@ -40,7 +40,6 @@ namespace NodaStack
             }
             else
             {
-                // Log une erreur si MainStatusBar n'existe pas
                 System.Diagnostics.Debug.WriteLine("MainStatusBar not found in XAML!");
             }
 
@@ -58,7 +57,171 @@ namespace NodaStack
             CheckInitialContainerStatus();
             RefreshProjectsList();
 
+            if (configManager.Configuration.Settings.AutoCheckUpdates)
+            {
+                CheckForUpdatesOnStartup();
+            }
+            else
+            {
+                Log("Auto-update check disabled in settings", LogLevel.Info, "Updates");
+            }
+
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
+        }
+
+        private async void CheckForUpdatesOnStartup()
+        {
+            if (!configManager.Configuration.Settings.AutoCheckUpdates)
+            {
+                return;
+            }
+
+            try
+            {
+                Debug.WriteLine("CheckForUpdatesOnStartup: Démarrage");
+                await Task.Delay(2000);
+
+                statusBarManager.UpdateStatus("⟳ Checking for updates...");
+                Debug.WriteLine("CheckForUpdatesOnStartup: Avant appel à CheckForUpdatesAsync");
+
+                try
+                {
+                    var updateChecker = new UpdateChecker();
+                    var updateInfo = await updateChecker.CheckForUpdatesAsync();
+                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync terminé avec succès");
+
+                    if (updateInfo != null && updateInfo.IsUpdateAvailable && configManager.Configuration.Settings.AutoInstallUpdates)
+                    {
+                        Log("Auto-installing update...", LogLevel.Info, "Updates");
+                        await DownloadAndInstallUpdate();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"CheckForUpdatesOnStartup: Erreur dans CheckForUpdatesAsync: {ex}");
+                }
+
+                statusBarManager.UpdateStatus("Ready");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"CheckForUpdatesOnStartup: Exception générale: {ex}");
+                Log($"Error during update check: {ex.Message}", LogLevel.Error, "Updates");
+                statusBarManager.UpdateStatus("Ready");
+            }
+        }
+
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                var updateChecker = new UpdateChecker();
+                Debug.WriteLine("MainWindow: Avant appel à CheckForUpdatesAsync()");
+                var updateInfo = await updateChecker.CheckForUpdatesAsync();
+                Debug.WriteLine("MainWindow: Après appel à CheckForUpdatesAsync()");
+                Debug.WriteLine($"MainWindow: updateInfo est null? {updateInfo == null}");
+
+                if (updateInfo != null)
+                {
+                    Debug.WriteLine($"MainWindow: IsUpdateAvailable? {updateInfo.IsUpdateAvailable}");
+                }
+
+                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                {
+                    Debug.WriteLine("MainWindow: Mise à jour disponible, affichage de la notification");
+                    NotificationManager.ShowNotification(
+                        "Update Available",
+                        $"NodaStack {updateInfo.Version} is available. Click to download.",
+                        NotificationType.Info,
+                        8000,
+                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl) { UseShellExecute = true }); });
+
+                    Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
+                }
+                else
+                {
+                    Debug.WriteLine("MainWindow: Pas de mise à jour disponible ou mise à jour non détectée");
+                    Log("No updates available or already running latest version", LogLevel.Info, "Updates");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MainWindow: Exception lors de la vérification: {ex}");
+                Log($"Error checking for updates: {ex.Message}", LogLevel.Error, "Updates");
+                throw;
+            }
+        }
+
+        public async void CheckForUpdatesManually(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                statusBarManager.UpdateStatus("⟳ Checking for updates...");
+
+                var updateChecker = new UpdateChecker();
+                var updateInfo = await updateChecker.CheckForUpdatesAsync();
+
+                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                {
+                    NotificationManager.ShowNotification(
+                        "Update Available",
+                        $"NodaStack {updateInfo.Version} is available. Click to download.",
+                        NotificationType.Info,
+                        8000,
+                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl) { UseShellExecute = true }); });
+
+                    Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
+                }
+                else
+                {
+                    NotificationManager.ShowNotification(
+                        "No Updates Available",
+                        "You are already using the latest version of NodaStack.",
+                        NotificationType.Success,
+                        5000);
+
+                    Log("No updates available or already running latest version", LogLevel.Info, "Updates");
+                }
+
+                statusBarManager.UpdateStatus("Ready");
+            }
+            catch (Exception ex)
+            {
+                Log($"Error checking for updates: {ex.Message}", LogLevel.Error, "Updates");
+                NotificationManager.ShowNotification(
+                    "Update Check Failed",
+                    $"Could not check for updates: {ex.Message}",
+                    NotificationType.Error,
+                    8000);
+                statusBarManager.UpdateStatus("Ready");
+            }
+        }
+
+        public async Task<bool> DownloadAndInstallUpdate()
+        {
+            try
+            {
+                var updateChecker = new UpdateChecker();
+                var updateInfo = await updateChecker.CheckForUpdatesAsync();
+
+                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                {
+                    var installer = new UpdateInstaller(logManager);
+                    return await installer.DownloadAndInstallUpdate(updateInfo.DownloadUrl);
+                }
+
+                NotificationManager.ShowNotification(
+                    "No Updates Available",
+                    "You are already using the latest version of NodaStack.",
+                    NotificationType.Info,
+                    5000);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log($"Error downloading update: {ex.Message}", LogLevel.Error, "Updates");
+                return false;
+            }
         }
 
         private void OpenBackupWindow()

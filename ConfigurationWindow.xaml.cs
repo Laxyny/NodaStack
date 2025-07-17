@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Reflection;
 
 namespace NodaStack
 {
@@ -24,6 +25,12 @@ namespace NodaStack
 
             LoadConfiguration();
             SetupEventHandlers();
+
+            var assembly = Assembly.GetExecutingAssembly();
+            var versionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+            CurrentVersionText.Text = versionAttribute?.Version ?? "0.0.0.0";
+
+            CheckLatestVersion();
         }
 
         private void LoadConfiguration()
@@ -45,6 +52,8 @@ namespace NodaStack
             DarkModeCheckBox.IsChecked = config.Settings.DarkMode;
             AutoRefreshProjectsCheckBox.IsChecked = config.Settings.AutoRefreshProjects;
             EnableSslCheckBox.IsChecked = config.Settings.EnableSsl;
+            EnableAutoUpdatesCheckBox.IsChecked = config.Settings.AutoCheckUpdates;
+            AutoInstallUpdatesCheckBox.IsChecked = config.Settings.AutoInstallUpdates;
             MySqlPasswordBox.Password = config.Settings.MySqlPassword;
             MySqlDefaultDbTextBox.Text = config.Settings.MySqlDefaultDatabase;
             ProjectsPathTextBox.Text = config.Settings.ProjectsPath;
@@ -65,6 +74,15 @@ namespace NodaStack
                     comboBox.SelectedItem = item;
                     break;
                 }
+            }
+        }
+
+        private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            var mainWindow = Owner as MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.CheckForUpdatesManually(sender, e);
             }
         }
 
@@ -231,7 +249,8 @@ namespace NodaStack
                     ProjectsPath = ProjectsPathTextBox.Text,
                     DefaultBrowser = "default",
                     LogRetentionDays = 7,
-                    AutoCheckUpdates = true,
+                    AutoCheckUpdates = EnableAutoUpdatesCheckBox.IsChecked ?? true,
+                    AutoInstallUpdates = AutoInstallUpdatesCheckBox.IsChecked ?? false,
                     Language = "en"
                 };
                 configManager.UpdateSettings(newSettings);
@@ -294,6 +313,49 @@ namespace NodaStack
             cancellationTokenSource.Cancel();
             portCheckTimer?.Dispose();
             base.OnClosed(e);
+        }
+
+        private async void CheckLatestVersion()
+        {
+            try
+            {
+                var updateChecker = new UpdateChecker();
+                var updateInfo = await updateChecker.CheckForUpdatesAsync();
+
+                if (updateInfo != null)
+                {
+                    LatestVersionText.Text = updateInfo.Version;
+
+                    if (updateInfo.IsUpdateAvailable)
+                    {
+                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
+                        DownloadUpdateButton.IsEnabled = true;
+                    }
+                    else
+                    {
+                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Black);
+                    }
+                }
+                else
+                {
+                    LatestVersionText.Text = "Unknown";
+                    LatestVersionText.Foreground = new SolidColorBrush(Colors.Gray);
+                }
+            }
+            catch (Exception ex)
+            {
+                LatestVersionText.Text = "Error checking";
+                LatestVersionText.Foreground = new SolidColorBrush(Colors.Red);
+            }
+        }
+
+        private async void DownloadAndInstallUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            var mainWindow = Owner as MainWindow;
+            if (mainWindow != null)
+            {
+                await mainWindow.DownloadAndInstallUpdate();
+            }
         }
     }
 }

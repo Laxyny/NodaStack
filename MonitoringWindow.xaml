@@ -1,4 +1,3 @@
-<!-- filepath: MonitoringWindow.xaml -->
 <Window x:Class="NodaStack.MonitoringWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

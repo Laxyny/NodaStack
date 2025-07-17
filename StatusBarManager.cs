@@ -18,7 +18,6 @@ namespace NodaStack
         {
             this.statusBar = statusBar;
 
-            // Chercher les éléments existants ou les créer
             statusText = statusBar.FindName("StatusText") as TextBlock ?? CreateStatusText();
             timeText = statusBar.FindName("TimeText") as TextBlock ?? CreateTimeText();
             servicesText = statusBar.FindName("ServicesText") as TextBlock ?? CreateServicesText();
