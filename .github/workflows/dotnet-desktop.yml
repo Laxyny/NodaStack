@@ -45,6 +45,21 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore $env:Solution_Name
 
+      - name: Update project version
+        shell: pwsh
+        run: |
+          $VERSION = "$(Get-Date -Format 'yyyy.MM.dd').${{ github.run_number }}"
+          echo "Setting version to $VERSION"
+          
+          $csprojPath = "NodaStack.csproj"
+          $csproj = Get-Content $csprojPath -Raw
+          $csproj = $csproj -replace '<Version>.*?</Version>', "<Version>$VERSION</Version>"
+          $csproj = $csproj -replace '<AssemblyVersion>.*?</AssemblyVersion>', "<AssemblyVersion>$VERSION</AssemblyVersion>"
+          $csproj = $csproj -replace '<FileVersion>.*?</FileVersion>', "<FileVersion>$VERSION</FileVersion>"
+          Set-Content -Path $csprojPath -Value $csproj
+          
+          echo "Version updated in project file"
+
       - name: Build the application
         run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
         env:
@@ -67,7 +82,6 @@ jobs:
           mkdir release
           xcopy "bin\Release\net9.0-windows\*" "release\" /E /H /Y
 
-          # Ajouter des infos de build
           echo NodaStack Build ${{ github.run_number }} > release/BUILD_INFO.txt
           echo Commit: ${{ github.sha }} >> release/BUILD_INFO.txt
           echo Date: %date% %time% >> release/BUILD_INFO.txt
@@ -122,7 +136,7 @@ jobs:
       - name: Generate version
         id: version
         run: |
-          VERSION="v$(date +'%Y.%m.%d')-build.${{ github.run_number }}"
+          VERSION="v$(date +'%Y.%m.%d').${{ github.run_number }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag_name=$VERSION" >> $GITHUB_OUTPUT
 
@@ -189,3 +203,27 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate latest.json
+        run: |
+          cat > ./release-assets/latest.json << EOF
+          {
+            "version": "${{ steps.version.outputs.version }}",
+            "releaseDate": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "releaseNotesUrl": "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag_name }}",
+            "downloadUrl": "${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag_name }}/NodaStack-Setup.exe"
+          }
+          EOF
+          cat ./release-assets/latest.json
+
+      - name: Upload to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 22
+          local-dir: ./release-assets/
+          server-dir: /Nodasys-Softwares/NodaStack/
+          dangerous-clean-slate: true
+          state-name: ftp.state

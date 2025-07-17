@@ -12,7 +12,6 @@
     <Window.Resources>
         <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
 
-        <!-- Styles pour correspondre à ton thème -->
         <Style x:Key="ModernButton"
                 TargetType="Button">
             <Setter Property="Background"

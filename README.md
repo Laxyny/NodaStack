@@ -26,6 +26,15 @@
 - **Real-time Monitoring**: Built-in logging and service status indicators.
 - **Lightweight & Portable**: Use the installer or just run the portable version.
 
+## 🏗️ Architecture Overview
+
+The codebase is organized into two main projects:
+
+- **NodaStack.Core** – Contains domain models shared across the application.
+- **NodaStack** – The WPF interface referencing the core library.
+
+This separation keeps core logic independent from the user interface and paves the way for additional front‑ends or services.
+
 ## 📚 Table of Contents
 
 - Installation
@@ -40,7 +49,7 @@
 For most users, the easiest way to get started is to download the latest release.
 
 1.  Go to the [**Releases Page**](https://github.com/Laxyny/NodaStack/releases/latest).
-2.  Download the `NodaStack-Installer.exe` for a full installation or `NodaStack-Release.zip` for a portable experience.
+2.  Download the `NodaStack-Setup.exe` for a full installation or `NodaStack-Release.zip` for a portable experience.
 3.  Run the installer or extract the zip file and launch `NodaStack.exe`.
 
 **Requirements:**

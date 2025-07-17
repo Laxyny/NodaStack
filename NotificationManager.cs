@@ -27,6 +27,11 @@ namespace NodaStack
             }
         }
 
+        public static void ShowNotification(string title, string message, NotificationType type, int durationMs, Action onClick)
+        {
+            ShowNotification(title, message, type, durationMs);
+        }
+
         private static void CreateToast(string title, string message, NotificationType type, int durationMs)
         {
             var toast = new Window
