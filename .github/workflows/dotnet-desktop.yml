@@ -216,14 +216,14 @@ jobs:
           EOF
           cat ./release-assets/latest.json
 
-      - name: Upload to FTP
+      - name: Upload files via SFTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: sftp
           port: 22
           local-dir: ./release-assets/
           server-dir: /Nodasys-Softwares/NodaStack/
           dangerous-clean-slate: true
-          state-name: ftp.state
