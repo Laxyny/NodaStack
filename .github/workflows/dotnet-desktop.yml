@@ -217,22 +217,22 @@ jobs:
           EOF
           cat ./release-assets/latest.json
 
-      - name: Ensure remote directory exists
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host:     ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port:     22
-          script:   mkdir -p Nodasys-Softwares/NodaStack
+      - name: Install sshpass (pour pouvoir passer le mot de passe à sftp)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
 
-      - name: Upload files via SFTP
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          source: "./release-assets/*"
-          target: "/Nodasys-Softwares/NodaStack/"
-          rm: true
+      - name: Upload files via SFTP natif
+        run: |
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=no \
+            -P 22 \
+            "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}" << 'EOF'
+            mkdir -p Nodasys-Softwares/NodaStack
+            lcd release-assets
+            cd Nodasys-Softwares/NodaStack
+            put *
+            bye
+          EOF
