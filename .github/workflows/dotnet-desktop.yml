@@ -42,23 +42,27 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      - name: Restore dependencies
-        run: dotnet restore $env:Solution_Name
-
-      - name: Update project version
+      - name: Define date-based version
+        id: set-version
         shell: pwsh
         run: |
-          $VERSION = "$(Get-Date -Format 'yyyy.MM.dd').${{ github.run_number }}"
-          echo "Setting version to $VERSION"
-          
-          $csprojPath = "NodaStack.csproj"
-          $csproj = Get-Content $csprojPath -Raw
-          $csproj = $csproj -replace '<Version>.*?</Version>', "<Version>$VERSION</Version>"
-          $csproj = $csproj -replace '<AssemblyVersion>.*?</AssemblyVersion>', "<AssemblyVersion>$VERSION</AssemblyVersion>"
-          $csproj = $csproj -replace '<FileVersion>.*?</FileVersion>', "<FileVersion>$VERSION</FileVersion>"
-          Set-Content -Path $csprojPath -Value $csproj
-          
-          echo "Version updated in project file"
+          $ver = "$(Get-Date -Format 'yyyy.MM.dd').${{ github.run_number }}"
+          echo "version=$ver"    >> $GITHUB_OUTPUT
+          echo "tag_name=v$ver"  >> $GITHUB_OUTPUT
+
+      - name: Apply version to csproj
+        shell: pwsh
+        run: |
+          $Csproj = "NodaStack.csproj"
+          (Get-Content $Csproj) `
+            -replace '<Version>.*?</Version>', "<Version>${{ steps.set-version.outputs.version }}</Version>" `
+            -replace '<AssemblyVersion>.*?</AssemblyVersion>', "<AssemblyVersion>${{ steps.set-version.outputs.version }}</AssemblyVersion>" `
+            -replace '<FileVersion>.*?</FileVersion>', "<FileVersion>${{ steps.set-version.outputs.version }}</FileVersion>" `
+            -replace '<InformationalVersion>.*?</InformationalVersion>', "<InformationalVersion>${{ steps.set-version.outputs.version }}</InformationalVersion>" `
+            | Set-Content $Csproj
+
+      - name: Restore dependencies
+        run: dotnet restore $env:Solution_Name
 
       - name: Build the application
         run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
