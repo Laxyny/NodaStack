@@ -218,13 +218,12 @@ jobs:
           cat ./release-assets/latest.json
 
       - name: Upload files via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: appleboy/scp-action@v0.1.6
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: sftp
           port: 22
-          local-dir: ./release-assets/
-          server-dir: /Nodasys-Softwares/NodaStack/
-          dangerous-clean-slate: true
+          source: "./release-assets/*"
+          target: "/Nodasys-Softwares/NodaStack/"
+          rm: true
