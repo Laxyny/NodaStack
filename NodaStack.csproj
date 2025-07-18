@@ -22,5 +22,8 @@
   <ItemGroup>
     <Compile Remove="Core\**\*.cs" />
   </ItemGroup>
+  <ItemGroup>  
+    <Compile Remove="AssemblyInfo.cs" />  
+</ItemGroup> 
 
 </Project>
