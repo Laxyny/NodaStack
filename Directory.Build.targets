@@ -1,0 +1,27 @@
+<Project>
+    <Target Name="GenerateVersionInfo" BeforeTargets="BeforeBuild">
+        <MakeDir Directories="$(IntermediateOutputPath)" />
+        <Exec Command="git describe --tags --abbrev=0 > $(IntermediateOutputPath)gitversion.txt" />
+        <ReadLinesFromFile File="$(IntermediateOutputPath)gitversion.txt">
+            <Output TaskParameter="Lines" PropertyName="GitVersionRaw" />
+        </ReadLinesFromFile>
+        <Delete Files="$(IntermediateOutputPath)gitversion.txt" />
+        <PropertyGroup>
+            <GitVersion>$([System.Text.RegularExpressions.Regex]::Match('$(GitVersionRaw)',
+                'v?(.*)').Groups[1].Value)</GitVersion>
+        </PropertyGroup>
+        <ItemGroup>
+            <VersionLines
+                Include="[assembly: System.Reflection.AssemblyVersion(&quot;$(GitVersion)&quot;)]" />
+            <VersionLines
+                Include="[assembly: System.Reflection.AssemblyFileVersion(&quot;$(GitVersion)&quot;)]" />
+            <VersionLines
+                Include="[assembly: System.Reflection.AssemblyInformationalVersion(&quot;$(GitVersion)&quot;)]" />
+        </ItemGroup>
+        <WriteLinesToFile File="$(IntermediateOutputPath)VersionInfo.g.cs" Lines="@(VersionLines)"
+            Overwrite="true" Encoding="UTF-8" />
+        <ItemGroup>
+            <Compile Include="$(IntermediateOutputPath)VersionInfo.g.cs" />
+        </ItemGroup>
+    </Target>
+</Project>
