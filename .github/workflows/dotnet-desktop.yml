@@ -50,6 +50,11 @@ jobs:
           echo "version=$ver"    >> $GITHUB_OUTPUT
           echo "tag_name=v$ver"  >> $GITHUB_OUTPUT
 
+      - name: Export build version
+        shell: pwsh
+        run: |
+          "NODASTACK_BUILD_VERSION=${{ steps.set-version.outputs.version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Apply version to csproj
         shell: pwsh
         run: |

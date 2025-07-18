@@ -1,14 +1,22 @@
 <Project>
     <Target Name="GenerateVersionInfo" BeforeTargets="BeforeBuild">
         <MakeDir Directories="$(IntermediateOutputPath)" />
-        <Exec Command="git describe --tags --abbrev=0 > $(IntermediateOutputPath)gitversion.txt" />
-        <ReadLinesFromFile File="$(IntermediateOutputPath)gitversion.txt">
+        <PropertyGroup>
+            <EnvVersion>$([System.Environment]::GetEnvironmentVariable('NODASTACK_BUILD_VERSION'))</EnvVersion>
+        </PropertyGroup>
+        <Exec Command="git describe --tags --abbrev=0 > $(IntermediateOutputPath)gitversion.txt"
+            Condition="'$(EnvVersion)' == ''" />
+        <ReadLinesFromFile File="$(IntermediateOutputPath)gitversion.txt"
+            Condition="'$(EnvVersion)' == ''">
             <Output TaskParameter="Lines" PropertyName="GitVersionRaw" />
         </ReadLinesFromFile>
-        <Delete Files="$(IntermediateOutputPath)gitversion.txt" />
-        <PropertyGroup>
+        <Delete Files="$(IntermediateOutputPath)gitversion.txt" Condition="'$(EnvVersion)' == ''" />
+        <PropertyGroup Condition="'$(EnvVersion)' == ''">
             <GitVersion>$([System.Text.RegularExpressions.Regex]::Match('$(GitVersionRaw)',
                 'v?(.*)').Groups[1].Value)</GitVersion>
+        </PropertyGroup>
+        <PropertyGroup Condition="'$(EnvVersion)' != ''">
+            <GitVersion>$(EnvVersion)</GitVersion>
         </PropertyGroup>
         <ItemGroup>
             <VersionLines
