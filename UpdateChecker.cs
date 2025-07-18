@@ -60,38 +60,44 @@ namespace NodaStack
 
                 var assembly = Assembly.GetExecutingAssembly();
                 var versionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
-                var currentVersion = versionAttribute?.Version ?? "0.0.0.0";
-                updateInfo.CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
+                updateInfo.CurrentVersion = versionAttribute?.Version ?? "0.0.0.0";
 
                 Debug.WriteLine($"UpdateChecker: Version actuelle: {updateInfo.CurrentVersion}");
                 Debug.WriteLine($"UpdateChecker: Version disponible: {updateInfo.Version}");
 
                 try
                 {
-                    string normalizedServerVersion = updateInfo.Version;
-                    string normalizedCurrentVersion = currentVersion;
+                    string serverVersionStr = updateInfo.Version.TrimStart('v').Split('-')[0];
+                    string currentVersionStr = updateInfo.CurrentVersion.TrimStart('v').Split('-')[0];
 
-                    if (updateInfo.Version.StartsWith("v"))
+                    var serverParts = serverVersionStr.Split('.').Select(int.Parse).ToArray();
+                    var currentParts = currentVersionStr.Split('.').Select(int.Parse).ToArray();
+
+                    bool isUpdateAvailable = false;
+                    int minLength = Math.Min(serverParts.Length, currentParts.Length);
+
+                    for (int i = 0; i < minLength; i++)
                     {
-                        var parts = updateInfo.Version.TrimStart('v').Split('-');
-                        normalizedServerVersion = parts[0];
-
-                        if (normalizedServerVersion.Count(c => c == '.') > 2)
+                        if (serverParts[i] > currentParts[i])
                         {
-                            var dateComponents = normalizedServerVersion.Split('.');
-                            if (dateComponents.Length >= 3)
-                            {
-                                normalizedServerVersion = string.Join(".", dateComponents.Take(3));
-                            }
+                            isUpdateAvailable = true;
+                            break;
+                        }
+                        if (serverParts[i] < currentParts[i])
+                        {
+                            break;
                         }
                     }
+                    
+                    if (!isUpdateAvailable && serverParts.Length > currentParts.Length)
+                    {
+                        isUpdateAvailable = true;
+                    }
 
-                    var serverVersion = new Version(updateInfo.Version.TrimStart('v').Split('-')[0]);
-                    var appVersion = new Version(updateInfo.CurrentVersion);
-                    updateInfo.IsUpdateAvailable = serverVersion > appVersion;
+                    updateInfo.IsUpdateAvailable = isUpdateAvailable;
 
-                    Debug.WriteLine($"UpdateChecker: Version serveur normalisée: {normalizedServerVersion}");
-                    Debug.WriteLine($"UpdateChecker: Version application normalisée: {normalizedCurrentVersion}");
+                    Debug.WriteLine($"UpdateChecker: Version serveur normalisée: {serverVersionStr}");
+                    Debug.WriteLine($"UpdateChecker: Version application normalisée: {currentVersionStr}");
                     Debug.WriteLine($"UpdateChecker: Mise à jour disponible: {updateInfo.IsUpdateAvailable}");
 
                 }
