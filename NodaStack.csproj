@@ -9,6 +9,13 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <Company>Nodasys</Company>
+    <Product>NodaStack</Product>
+    <Description>A modern, Docker-powered local web server manager for Windows.</Description>
+    <Copyright>Copyright © 2025 Nodasys</Copyright>
+    <AssemblyTitle>NodaStack</AssemblyTitle>
+    <Authors>Nodasys</Authors>
+    <ApplicationIcon>Assets\NodaStackLogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Core\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\NodaStackLogo.ico" />
   </ItemGroup>
 
 </Project>

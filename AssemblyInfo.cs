@@ -1,10 +1,18 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 
-[assembly:ThemeInfo(
-    ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
-                                                //(used if a resource is not found in the page,
-                                                // or application resource dictionaries)
-    ResourceDictionaryLocation.SourceAssembly   //where the generic resource dictionary is located
-                                                //(used if a resource is not found in the page,
-                                                // app, or any theme specific resource dictionaries)
+[assembly: AssemblyTitle("NodaStack")]
+[assembly: AssemblyDescription("A modern, Docker-powered local web server manager for Windows.")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Nodasys")]
+[assembly: AssemblyProduct("NodaStack")]
+[assembly: AssemblyCopyright("Copyright © 2025 Nodasys")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+[assembly: ThemeInfo(
+    ResourceDictionaryLocation.None,
+    ResourceDictionaryLocation.SourceAssembly
 )]
