@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace NodaStack
 {
@@ -57,6 +58,7 @@ namespace NodaStack
             MySqlPasswordBox.Password = config.Settings.MySqlPassword;
             MySqlDefaultDbTextBox.Text = config.Settings.MySqlDefaultDatabase;
             ProjectsPathTextBox.Text = config.Settings.ProjectsPath;
+            NgrokTokenPasswordBox.Password = config.NgrokAuthToken;
 
             _ = Task.Run(async () =>
             {
@@ -77,6 +79,8 @@ namespace NodaStack
             }
         }
 
+
+
         private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
             var mainWindow = Owner as MainWindow;
@@ -92,6 +96,52 @@ namespace NodaStack
             PhpPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             MySqlPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             PhpMyAdminPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
+        }
+
+        private async void VerifyNgrokToken_Click(object sender, RoutedEventArgs e)
+        {
+            string token = NgrokTokenPasswordBox.Password;
+
+            if (string.IsNullOrEmpty(token))
+            {
+                MessageBox.Show("Veuillez entrer un token ngrok.", "Token manquant", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            VerifyNgrokTokenButton.IsEnabled = false;
+            VerifyNgrokTokenButton.Content = "Vérification...";
+
+            try
+            {
+                var tunnelService = new TunnelService(token);
+                bool isValid = await tunnelService.TestNgrokAuthTokenAsync(token);
+
+                if (isValid)
+                {
+                    MessageBox.Show("Le token ngrok est valide!", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Le token ngrok semble invalide. Veuillez vérifier votre token et réessayer.",
+                                  "Token invalide", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la vérification du token: {ex.Message}",
+                              "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                VerifyNgrokTokenButton.IsEnabled = true;
+                VerifyNgrokTokenButton.Content = "Vérifier";
+            }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
 
         private Timer? portCheckTimer;
@@ -251,8 +301,10 @@ namespace NodaStack
                     LogRetentionDays = 7,
                     AutoCheckUpdates = EnableAutoUpdatesCheckBox.IsChecked ?? true,
                     AutoInstallUpdates = AutoInstallUpdatesCheckBox.IsChecked ?? false,
-                    Language = "en"
+                    Language = "en",
                 };
+
+                configManager.UpdateNgrokToken(NgrokTokenPasswordBox.Password);
                 configManager.UpdateSettings(newSettings);
 
                 MessageBox.Show("Configuration saved successfully!", "Configuration Saved", MessageBoxButton.OK, MessageBoxImage.Information);

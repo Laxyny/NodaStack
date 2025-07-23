@@ -891,6 +891,7 @@ namespace NodaStack
             ViewApacheButton.IsEnabled = hasSelection && apacheIsRunning;
             ViewPhpButton.IsEnabled = hasSelection && phpIsRunning;
             DeleteProjectButton.IsEnabled = hasSelection;
+            ShareProjectButton.IsEnabled = hasSelection;
         }
 
         private void NewProjectTextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -941,6 +942,61 @@ namespace NodaStack
             {
                 Log($"Error creating project: {ex.Message}", LogLevel.Error);
                 NotificationManager.ShowNotification("Error", $"Error creating project: {ex.Message}", NotificationType.Error);
+            }
+        }
+
+        private async void ShareProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                try
+                {
+                    var config = configManager.GetConfiguration();
+
+                    if (string.IsNullOrEmpty(config.NgrokAuthToken))
+                    {
+                        NotificationManager.ShowNotification(
+                            "Configuration requise",
+                            "Veuillez configurer votre token ngrok dans les paramètres.",
+                            NotificationType.Warning
+                        );
+                        OpenConfiguration();
+                        return;
+                    }
+
+                    statusBarManager.UpdateStatus("Création du tunnel ngrok...");
+                    var tunnelService = new TunnelService(config.NgrokAuthToken, logManager);
+                    Log("Démarrage du partage du projet...", LogLevel.Info, "Share");
+
+                    string url = await tunnelService.StartTunnelAsync(project.Name, config.ApachePort);
+
+                    // Copier l'URL dans le presse-papiers de façon sécurisée
+                    try
+                    {
+                        System.Windows.Clipboard.SetText(url);
+                        Log("URL copiée dans le presse-papiers", LogLevel.Info, "Share");
+                    }
+                    catch (Exception clipboardEx)
+                    {
+                        Log($"Impossible de copier l'URL dans le presse-papiers: {clipboardEx.Message}", LogLevel.Warning, "Share");
+                        // Continuer malgré l'erreur de presse-papiers
+                    }
+
+                    NotificationManager.ShowNotification(
+                        "Projet partagé",
+                        $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copiée dans le presse-papiers)" : "")}",
+                        NotificationType.Success,
+                        8000
+                    );
+                    Log($"Projet '{project.Name}' partagé à l'adresse {url}", LogLevel.Info, "Share");
+                    statusBarManager.UpdateStatus("Prêt");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Erreur de partage: {ex.Message}", LogLevel.Error, "Share");
+                    NotificationManager.ShowNotification("Erreur de partage", ex.Message, NotificationType.Error);
+                    statusBarManager.UpdateStatus("Prêt");
+                }
             }
         }
 
