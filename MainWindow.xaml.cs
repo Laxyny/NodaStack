@@ -78,17 +78,17 @@ namespace NodaStack
 
             try
             {
-                Debug.WriteLine("CheckForUpdatesOnStartup: Démarrage");
+                Debug.WriteLine("CheckForUpdatesOnStartup: Starting");
                 await Task.Delay(2000);
 
                 statusBarManager.UpdateStatus("⟳ Checking for updates...");
-                Debug.WriteLine("CheckForUpdatesOnStartup: Avant appel à CheckForUpdatesAsync");
+                Debug.WriteLine("CheckForUpdatesOnStartup: Before calling CheckForUpdatesAsync");
 
                 try
                 {
                     var updateChecker = new UpdateChecker();
                     var updateInfo = await updateChecker.CheckForUpdatesAsync();
-                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync terminé avec succès");
+                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync completed successfully");
 
                     if (updateInfo != null && updateInfo.IsUpdateAvailable && configManager.Configuration.Settings.AutoInstallUpdates)
                     {
@@ -98,14 +98,14 @@ namespace NodaStack
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"CheckForUpdatesOnStartup: Erreur dans CheckForUpdatesAsync: {ex}");
+                    Debug.WriteLine($"CheckForUpdatesOnStartup: Error in CheckForUpdatesAsync: {ex}");
                 }
 
                 statusBarManager.UpdateStatus("Ready");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"CheckForUpdatesOnStartup: Exception générale: {ex}");
+                Debug.WriteLine($"CheckForUpdatesOnStartup: General exception: {ex}");
                 Log($"Error during update check: {ex.Message}", LogLevel.Error, "Updates");
                 statusBarManager.UpdateStatus("Ready");
             }
@@ -891,6 +891,7 @@ namespace NodaStack
             ViewApacheButton.IsEnabled = hasSelection && apacheIsRunning;
             ViewPhpButton.IsEnabled = hasSelection && phpIsRunning;
             DeleteProjectButton.IsEnabled = hasSelection;
+            ShareProjectButton.IsEnabled = hasSelection;
         }
 
         private void NewProjectTextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -941,6 +942,61 @@ namespace NodaStack
             {
                 Log($"Error creating project: {ex.Message}", LogLevel.Error);
                 NotificationManager.ShowNotification("Error", $"Error creating project: {ex.Message}", NotificationType.Error);
+            }
+        }
+
+        private async void ShareProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProjectsListView.SelectedItem is ProjectInfo project)
+            {
+                try
+                {
+                    var config = configManager.GetConfiguration();
+
+                    if (string.IsNullOrEmpty(config.NgrokAuthToken))
+                    {
+                        NotificationManager.ShowNotification(
+                            "Configuration required",
+                            "Please configure your ngrok token in the settings.",
+                            NotificationType.Warning
+                        );
+                        OpenConfiguration();
+                        return;
+                    }
+
+                    statusBarManager.UpdateStatus("Creating ngrok tunnel...");
+                    var tunnelService = new TunnelService(config.NgrokAuthToken, logManager);
+                    Log("Starting project sharing...", LogLevel.Info, "Share");
+
+                    string url = await tunnelService.StartTunnelAsync(project.Name, config.ApachePort);
+
+                    // Securely copy the URL to the clipboard
+                    try
+                    {
+                        System.Windows.Clipboard.SetText(url);
+                        Log("URL copied to clipboard", LogLevel.Info, "Share");
+                    }
+                    catch (Exception clipboardEx)
+                    {
+                        Log($"Unable to copy URL to clipboard: {clipboardEx.Message}", LogLevel.Warning, "Share");
+                        // Continue despite clipboard error
+                    }
+
+                    NotificationManager.ShowNotification(
+                        "Project shared",
+                        $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copied to clipboard)" : "")}",
+                        NotificationType.Success,
+                        8000
+                    );
+                    Log($"Project '{project.Name}' shared at {url}", LogLevel.Info, "Share");
+                    statusBarManager.UpdateStatus("Ready");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Share error: {ex.Message}", LogLevel.Error, "Share");
+                    NotificationManager.ShowNotification("Share error", ex.Message, NotificationType.Error);
+                    statusBarManager.UpdateStatus("Ready");
+                }
             }
         }
 

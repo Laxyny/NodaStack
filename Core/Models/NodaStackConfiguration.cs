@@ -20,6 +20,7 @@ public class NodaStackConfiguration
     };
 
     public NodaStackSettings Settings { get; set; } = new NodaStackSettings();
+    public string NgrokAuthToken { get; set; } = "";
 
     public int ApachePort => Ports.TryGetValue("Apache", out var port) ? port : 8080;
     public int PhpPort => Ports.TryGetValue("PHP", out var port) ? port : 8000;

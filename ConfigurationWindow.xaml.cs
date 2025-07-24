@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace NodaStack
 {
@@ -57,6 +58,7 @@ namespace NodaStack
             MySqlPasswordBox.Password = config.Settings.MySqlPassword;
             MySqlDefaultDbTextBox.Text = config.Settings.MySqlDefaultDatabase;
             ProjectsPathTextBox.Text = config.Settings.ProjectsPath;
+            NgrokTokenPasswordBox.Password = config.NgrokAuthToken;
 
             _ = Task.Run(async () =>
             {
@@ -77,6 +79,8 @@ namespace NodaStack
             }
         }
 
+
+
         private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
             var mainWindow = Owner as MainWindow;
@@ -92,6 +96,12 @@ namespace NodaStack
             PhpPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             MySqlPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             PhpMyAdminPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
 
         private Timer? portCheckTimer;
@@ -251,8 +261,10 @@ namespace NodaStack
                     LogRetentionDays = 7,
                     AutoCheckUpdates = EnableAutoUpdatesCheckBox.IsChecked ?? true,
                     AutoInstallUpdates = AutoInstallUpdatesCheckBox.IsChecked ?? false,
-                    Language = "en"
+                    Language = "en",
                 };
+
+                configManager.UpdateNgrokToken(NgrokTokenPasswordBox.Password);
                 configManager.UpdateSettings(newSettings);
 
                 MessageBox.Show("Configuration saved successfully!", "Configuration Saved", MessageBoxButton.OK, MessageBoxImage.Information);

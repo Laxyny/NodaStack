@@ -95,6 +95,12 @@ namespace NodaStack
             SaveConfiguration();
         }
 
+        public void UpdateNgrokToken(string token)
+        {
+            Configuration.NgrokAuthToken = token;
+            SaveConfiguration();
+        }
+
         public void ResetToDefaults()
         {
             Configuration = new NodaStackConfiguration();

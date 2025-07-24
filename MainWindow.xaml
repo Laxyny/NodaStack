@@ -457,6 +457,18 @@
                                                                 <TextBlock Text="Open Folder"/>
                                                         </StackPanel>
                                                 </Button>
+                                                <Button x:Name="ShareProjectButton"
+                                                        Width="70"
+                                                        Height="25"
+                                                        Click="ShareProject_Click"
+                                                        IsEnabled="False">
+                                                        <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="🔗"
+                                                                           FontSize="10"
+                                                                           Margin="0,0,3,0"/>
+                                                                <TextBlock Text="Share"/>
+                                                        </StackPanel>
+                                                </Button>
                                                 <Button x:Name="ViewApacheButton"
                                                         Width="100"
                                                         Height="25"
