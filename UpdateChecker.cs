@@ -4,8 +4,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Net;
 using System.Net.Security;
 using System.Linq;
 
@@ -29,14 +27,15 @@ namespace NodaStack
         {
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
-
                 Debug.WriteLine("UpdateChecker: Checking for updates...");
 
-                using var httpClient = new HttpClient(new HttpClientHandler
+                var handler = new HttpClientHandler
                 {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                });
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true,
+                    SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+                };
+
+                using var httpClient = new HttpClient(handler);
 
                 httpClient.DefaultRequestHeaders.Add("User-Agent", "NodaStack Update Checker");
                 httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache, no-store");

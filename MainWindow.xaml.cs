@@ -19,7 +19,7 @@ namespace NodaStack
         private ConfigurationManager configManager;
         private LogManager logManager;
         private KeyboardShortcutManager shortcutManager;
-        private StatusBarManager statusBarManager;
+        private StatusBarManager? statusBarManager;
         private BackupManager backupManager;
 
         public MainWindow()
@@ -81,7 +81,7 @@ namespace NodaStack
                 Debug.WriteLine("CheckForUpdatesOnStartup: Starting");
                 await Task.Delay(2000);
 
-                statusBarManager.UpdateStatus("⟳ Checking for updates...");
+                statusBarManager?.UpdateStatus("⟳ Checking for updates...");
                 Debug.WriteLine("CheckForUpdatesOnStartup: Before calling CheckForUpdatesAsync");
 
                 try
@@ -101,13 +101,13 @@ namespace NodaStack
                     Debug.WriteLine($"CheckForUpdatesOnStartup: Error in CheckForUpdatesAsync: {ex}");
                 }
 
-                statusBarManager.UpdateStatus("Ready");
+                statusBarManager?.UpdateStatus("Ready");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"CheckForUpdatesOnStartup: General exception: {ex}");
                 Log($"Error during update check: {ex.Message}", LogLevel.Error, "Updates");
-                statusBarManager.UpdateStatus("Ready");
+                statusBarManager?.UpdateStatus("Ready");
             }
         }
 
@@ -126,7 +126,7 @@ namespace NodaStack
                     Debug.WriteLine($"MainWindow: IsUpdateAvailable? {updateInfo.IsUpdateAvailable}");
                 }
 
-                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
                 {
                     Debug.WriteLine("MainWindow: Mise à jour disponible, affichage de la notification");
                     NotificationManager.ShowNotification(
@@ -134,7 +134,7 @@ namespace NodaStack
                         $"NodaStack {updateInfo.Version} is available. Click to download.",
                         NotificationType.Info,
                         8000,
-                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl) { UseShellExecute = true }); });
+                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl!) { UseShellExecute = true }); });
 
                     Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
                 }
@@ -156,19 +156,19 @@ namespace NodaStack
         {
             try
             {
-                statusBarManager.UpdateStatus("⟳ Checking for updates...");
+                statusBarManager?.UpdateStatus("⟳ Checking for updates...");
 
                 var updateChecker = new UpdateChecker();
                 var updateInfo = await updateChecker.CheckForUpdatesAsync();
 
-                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
                 {
                     NotificationManager.ShowNotification(
                         "Update Available",
                         $"NodaStack {updateInfo.Version} is available. Click to download.",
                         NotificationType.Info,
                         8000,
-                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl) { UseShellExecute = true }); });
+                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl!) { UseShellExecute = true }); });
 
                     Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
                 }
@@ -183,7 +183,7 @@ namespace NodaStack
                     Log("No updates available or already running latest version", LogLevel.Info, "Updates");
                 }
 
-                statusBarManager.UpdateStatus("Ready");
+                statusBarManager?.UpdateStatus("Ready");
             }
             catch (Exception ex)
             {
@@ -193,7 +193,7 @@ namespace NodaStack
                     $"Could not check for updates: {ex.Message}",
                     NotificationType.Error,
                     8000);
-                statusBarManager.UpdateStatus("Ready");
+                statusBarManager?.UpdateStatus("Ready");
             }
         }
 
@@ -360,7 +360,7 @@ namespace NodaStack
 
             if (!apacheIsRunning)
             {
-                statusBarManager.UpdateStatus("Starting Apache...");
+                statusBarManager?.UpdateStatus("Starting Apache...");
                 Log("Building nodastack_apache...", LogLevel.Info, "Apache");
                 await RunProcessAsync("docker build -t nodastack_apache ./Docker/apache");
 
@@ -373,12 +373,12 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log($"Apache container started on port {apachePort}.", LogLevel.Info, "Apache");
                     NotificationManager.ShowNotification("Apache", "Apache started successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
             else
             {
-                statusBarManager.UpdateStatus("Stopping Apache...");
+                statusBarManager?.UpdateStatus("Stopping Apache...");
                 Log("Stopping nodastack_apache container...", LogLevel.Info, "Apache");
                 RunProcess("docker stop nodastack_apache", () =>
                 {
@@ -388,7 +388,7 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log("Apache container stopped.", LogLevel.Info, "Apache");
                     NotificationManager.ShowNotification("Apache", "Apache stopped successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
         }
@@ -401,7 +401,7 @@ namespace NodaStack
 
             if (!phpIsRunning)
             {
-                statusBarManager.UpdateStatus("Starting PHP...");
+                statusBarManager?.UpdateStatus("Starting PHP...");
                 Log("Building nodastack_php...", LogLevel.Info, "PHP");
                 await RunProcessAsync("docker build -t nodastack_php ./Docker/php");
 
@@ -414,12 +414,12 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log($"PHP container started on port {phpPort}.", LogLevel.Info, "PHP");
                     NotificationManager.ShowNotification("PHP", "PHP started successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
             else
             {
-                statusBarManager.UpdateStatus("Stopping PHP...");
+                statusBarManager?.UpdateStatus("Stopping PHP...");
                 Log("Stopping nodastack_php container...", LogLevel.Info, "PHP");
                 RunProcess("docker stop nodastack_php", () =>
                 {
@@ -429,7 +429,7 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log("PHP container stopped.", LogLevel.Info, "PHP");
                     NotificationManager.ShowNotification("PHP", "PHP stopped successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
         }
@@ -442,7 +442,7 @@ namespace NodaStack
             // DEBUG : Afficher les valeurs
             Log($"Service Count Debug: Apache={apacheIsRunning}, PHP={phpIsRunning}, MySQL={mysqlIsRunning}, phpMyAdmin={phpmyadminIsRunning}, Total={runningServices}", LogLevel.Info, "Debug");
 
-            statusBarManager.UpdateServicesCount(runningServices, 4);
+            statusBarManager?.UpdateServicesCount(runningServices, 4);
         }
 
         private async void StartMySQL_Click(object sender, RoutedEventArgs e)
@@ -451,7 +451,7 @@ namespace NodaStack
 
             if (!mysqlIsRunning)
             {
-                statusBarManager.UpdateStatus("Starting MySQL...");
+                statusBarManager?.UpdateStatus("Starting MySQL...");
                 Log("Building nodastack_mysql...", LogLevel.Info, "MySQL");
                 await RunProcessAsync("docker build -t nodastack_mysql ./Docker/mysql");
 
@@ -464,12 +464,12 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log($"MySQL container started on port {mysqlPort}.", LogLevel.Info, "MySQL");
                     NotificationManager.ShowNotification("MySQL", "MySQL started successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
             else
             {
-                statusBarManager.UpdateStatus("Stopping MySQL...");
+                statusBarManager?.UpdateStatus("Stopping MySQL...");
                 Log("Stopping nodastack_phpmyadmin...", LogLevel.Info, "MySQL");
                 RunProcess("docker stop nodastack_phpmyadmin", () =>
                 {
@@ -487,7 +487,7 @@ namespace NodaStack
                         UpdateServiceButtons();
                         Log("MySQL container stopped.", LogLevel.Info, "MySQL");
                         NotificationManager.ShowNotification("MySQL", "MySQL stopped successfully", NotificationType.Success);
-                        statusBarManager.UpdateStatus("Ready");
+                        statusBarManager?.UpdateStatus("Ready");
                     });
                 });
             }
@@ -501,7 +501,7 @@ namespace NodaStack
             {
                 if (!mysqlIsRunning)
                 {
-                    statusBarManager.UpdateStatus("Starting phpMyAdmin...");
+                    statusBarManager?.UpdateStatus("Starting phpMyAdmin...");
                     Log("MySQL must be running before starting phpMyAdmin.", LogLevel.Warning, "phpMyAdmin");
                     NotificationManager.ShowNotification("Warning", "MySQL must be running before starting phpMyAdmin", NotificationType.Warning);
                     return;
@@ -521,12 +521,12 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log($"phpMyAdmin container started on port {phpmyadminPort}.", LogLevel.Info, "phpMyAdmin");
                     NotificationManager.ShowNotification("phpMyAdmin", "phpMyAdmin started successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
             else
             {
-                statusBarManager.UpdateStatus("Stopping phpMyAdmin...");
+                statusBarManager?.UpdateStatus("Stopping phpMyAdmin...");
                 Log("Stopping nodastack_phpmyadmin...", LogLevel.Info, "phpMyAdmin");
                 RunProcess("docker stop nodastack_phpmyadmin", () =>
                 {
@@ -536,7 +536,7 @@ namespace NodaStack
                     UpdateServicesCount();
                     Log("phpMyAdmin container stopped.", LogLevel.Info, "phpMyAdmin");
                     NotificationManager.ShowNotification("phpMyAdmin", "phpMyAdmin stopped successfully", NotificationType.Success);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 });
             }
         }
@@ -766,7 +766,7 @@ namespace NodaStack
 
         private async void CheckInitialContainerStatus()
         {
-            statusBarManager.UpdateStatus("Checking container status...");
+            statusBarManager?.UpdateStatus("Checking container status...");
 
             await Task.Run(() =>
             {
@@ -827,7 +827,7 @@ namespace NodaStack
                     Dispatcher.Invoke(() =>
                     {
                         UpdateServicesCount();
-                        statusBarManager.UpdateStatus("Ready");
+                        statusBarManager?.UpdateStatus("Ready");
                     });
                 }
                 catch (Exception ex)
@@ -835,7 +835,7 @@ namespace NodaStack
                     Log("Exception during status check: " + ex.Message, LogLevel.Error);
                     Dispatcher.Invoke(() =>
                     {
-                        statusBarManager.UpdateStatus("Error checking status");
+                        statusBarManager?.UpdateStatus("Error checking status");
                     });
                 }
             });
@@ -964,7 +964,7 @@ namespace NodaStack
                         return;
                     }
 
-                    statusBarManager.UpdateStatus("Creating ngrok tunnel...");
+                    statusBarManager?.UpdateStatus("Creating ngrok tunnel...");
                     var tunnelService = new TunnelService(config.NgrokAuthToken, logManager);
                     Log("Starting project sharing...", LogLevel.Info, "Share");
 
@@ -989,13 +989,13 @@ namespace NodaStack
                         8000
                     );
                     Log($"Project '{project.Name}' shared at {url}", LogLevel.Info, "Share");
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 }
                 catch (Exception ex)
                 {
                     Log($"Share error: {ex.Message}", LogLevel.Error, "Share");
                     NotificationManager.ShowNotification("Share error", ex.Message, NotificationType.Error);
-                    statusBarManager.UpdateStatus("Ready");
+                    statusBarManager?.UpdateStatus("Ready");
                 }
             }
         }

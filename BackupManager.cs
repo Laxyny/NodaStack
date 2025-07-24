@@ -150,7 +150,7 @@ namespace NodaStack
             }
         }
 
-        private async Task BackupConfigurationAsync(string tempDir)
+        private Task BackupConfigurationAsync(string tempDir)
         {
             var configDir = Path.Combine(tempDir, "configuration");
             Directory.CreateDirectory(configDir);
@@ -160,9 +160,11 @@ namespace NodaStack
             {
                 File.Copy(configPath, Path.Combine(configDir, "nodastack-config.json"));
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task BackupProjectsAsync(string tempDir)
+        private Task BackupProjectsAsync(string tempDir)
         {
             var projectsDir = Path.Combine(tempDir, "projects");
             var sourceProjectsDir = Path.Combine(Directory.GetCurrentDirectory(), "www");
@@ -171,6 +173,8 @@ namespace NodaStack
             {
                 CopyDirectory(sourceProjectsDir, projectsDir);
             }
+
+            return Task.CompletedTask;
         }
 
         private async Task BackupDatabaseAsync(string tempDir)
@@ -215,7 +219,7 @@ namespace NodaStack
             }
         }
 
-        private async Task BackupLogsAsync(string tempDir)
+        private Task BackupLogsAsync(string tempDir)
         {
             var logsDir = Path.Combine(tempDir, "logs");
             var sourceLogsDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
@@ -224,9 +228,11 @@ namespace NodaStack
             {
                 CopyDirectory(sourceLogsDir, logsDir);
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task RestoreConfigurationAsync(string tempDir)
+        private Task RestoreConfigurationAsync(string tempDir)
         {
             var configDir = Path.Combine(tempDir, "configuration");
             var configFile = Path.Combine(configDir, "nodastack-config.json");
@@ -237,9 +243,11 @@ namespace NodaStack
                 File.Copy(configFile, targetPath, true);
                 configManager.LoadConfiguration();
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task RestoreProjectsAsync(string tempDir)
+        private Task RestoreProjectsAsync(string tempDir)
         {
             var projectsDir = Path.Combine(tempDir, "projects");
             var targetProjectsDir = Path.Combine(Directory.GetCurrentDirectory(), "www");
@@ -252,9 +260,11 @@ namespace NodaStack
                 }
                 CopyDirectory(projectsDir, targetProjectsDir);
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task RestoreLogsAsync(string tempDir)
+        private Task RestoreLogsAsync(string tempDir)
         {
             var logsDir = Path.Combine(tempDir, "logs");
             var targetLogsDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
@@ -267,6 +277,8 @@ namespace NodaStack
                 }
                 CopyDirectory(logsDir, targetLogsDir);
             }
+
+            return Task.CompletedTask;
         }
 
         public List<BackupInfo> GetBackupList()

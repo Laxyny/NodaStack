@@ -14,7 +14,7 @@ namespace NodaStack
         private readonly BackupManager backupManager;
         private readonly LogManager logManager;
         private List<BackupInfo> backups;
-        private BackupInfo selectedBackup;
+        private BackupInfo? selectedBackup;
 
         public BackupWindow(BackupManager backupManager, LogManager logManager)
         {
@@ -253,7 +253,7 @@ namespace NodaStack
 
             if (hasSelection)
             {
-                ShowBackupDetails(selectedBackup);
+                ShowBackupDetails(selectedBackup!);
             }
             else
             {
