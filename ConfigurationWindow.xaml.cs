@@ -81,7 +81,7 @@ namespace NodaStack
 
 
 
-        private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
             var mainWindow = Owner as MainWindow;
             if (mainWindow != null)
@@ -354,7 +354,7 @@ namespace NodaStack
                     LatestVersionText.Foreground = new SolidColorBrush(Colors.Gray);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 LatestVersionText.Text = "Error checking";
                 LatestVersionText.Foreground = new SolidColorBrush(Colors.Red);
