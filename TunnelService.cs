@@ -29,15 +29,15 @@ namespace NodaStack
         {
             if (string.IsNullOrEmpty(_authToken))
             {
-                Log("Aucun token d'authentification ngrok configuré", LogLevel.Error);
-                throw new InvalidOperationException("Token d'authentification ngrok requis. Veuillez configurer votre token dans les paramètres.");
+                Log("No ngrok authentication token configured", LogLevel.Error);
+                throw new InvalidOperationException("Ngrok authentication token required. Please configure your token in the settings.");
             }
 
-            Log($"Démarrage d'un tunnel pour {name} sur le port {port}", LogLevel.Info);
+            Log($"Starting a tunnel for {name} on port {port}", LogLevel.Info);
 
             try
             {
-                Log("Suppression des anciens conteneurs ngrok", LogLevel.Info);
+                Log("Removing old ngrok containers", LogLevel.Info);
                 await Process
                     .Start(new ProcessStartInfo("docker", $"rm -f {ContainerName}")
                     {
@@ -47,7 +47,7 @@ namespace NodaStack
                     })!
                     .WaitForExitAsync(ct);
 
-                Log("Vérification de l'image ngrok", LogLevel.Info);
+                Log("Checking ngrok image", LogLevel.Info);
                 var pullProcess = Process.Start(new ProcessStartInfo("docker", "pull ngrok/ngrok")
                 {
                     RedirectStandardOutput = true,
@@ -57,10 +57,11 @@ namespace NodaStack
                 });
                 await pullProcess!.WaitForExitAsync(ct);
 
-                Log("Lancement du conteneur ngrok", LogLevel.Info);
+                Log("Starting ngrok container", LogLevel.Info);
                 var runArgs = $"run -d --rm --name {ContainerName} -p 4040:4040 " +
+                  "--add-host=host.docker.internal:host-gateway " +
                   $"-e NGROK_AUTHTOKEN={_authToken} ngrok/ngrok http " +
-                  $"--region=eu --host-header=rewrite localhost:{port}";
+                  $"--region=eu --host-header=rewrite host.docker.internal:{port}";
                 using var runProc = Process.Start(new ProcessStartInfo("docker", runArgs)
                 {
                     RedirectStandardOutput = true,
@@ -71,8 +72,8 @@ namespace NodaStack
 
                 if (runProc == null)
                 {
-                    Log("Impossible de lancer le processus docker", LogLevel.Error);
-                    throw new InvalidOperationException("Impossible de lancer le conteneur ngrok.");
+                    Log("Unable to start docker process", LogLevel.Error);
+                    throw new InvalidOperationException("Failed to start ngrok container.");
                 }
 
                 var containerId = (await runProc.StandardOutput.ReadLineAsync())?.Trim();
@@ -80,11 +81,11 @@ namespace NodaStack
                 if (runProc.ExitCode != 0 || string.IsNullOrEmpty(containerId))
                 {
                     var err = await runProc.StandardError.ReadToEndAsync();
-                    Log($"Échec de docker run: {err.Trim()}", LogLevel.Error);
-                    throw new InvalidOperationException("Échec de docker run: " + err.Trim());
+                    Log($"docker run failed: {err.Trim()}", LogLevel.Error);
+                    throw new InvalidOperationException("docker run failed: " + err.Trim());
                 }
 
-                Log($"Conteneur ngrok démarré avec l'ID: {containerId}", LogLevel.Info);
+                Log($"ngrok container started with ID: {containerId}", LogLevel.Info);
 
                 using var psProc = Process.Start(new ProcessStartInfo("docker", $"ps --filter name={ContainerName} --format \"{{{{.Names}}}}\"")
                 {
@@ -96,11 +97,11 @@ namespace NodaStack
                 await psProc.WaitForExitAsync(ct);
                 if (string.Compare(runningName, ContainerName, StringComparison.OrdinalIgnoreCase) != 0)
                 {
-                    Log("Le conteneur ngrok ne tourne pas après création", LogLevel.Error);
-                    throw new InvalidOperationException("Le conteneur ngrok ne tourne pas après création.");
+                    Log("ngrok container is not running after creation", LogLevel.Error);
+                    throw new InvalidOperationException("ngrok container not running after creation.");
                 }
 
-                Log("Attente de l'initialisation de l'API ngrok", LogLevel.Info);
+                Log("Waiting for ngrok API initialization", LogLevel.Info);
                 await Task.Delay(TimeSpan.FromSeconds(5), ct);
 
                 const int maxAttempts = 8;
@@ -111,10 +112,10 @@ namespace NodaStack
                 {
                     try
                     {
-                        Log($"Tentative de connexion à l'API ngrok ({attempt + 1}/{maxAttempts})", LogLevel.Info);
+                        Log($"Attempting to reach ngrok API ({attempt + 1}/{maxAttempts})", LogLevel.Info);
                         var json = await client.GetStringAsync(apiUrl, ct);
 
-                        Log("Réponse API reçue, analyse du JSON", LogLevel.Info);
+                        Log("API response received, parsing JSON", LogLevel.Info);
                         using var doc = JsonDocument.Parse(json);
                         var root = doc.RootElement;
 
@@ -127,29 +128,29 @@ namespace NodaStack
                                 !string.IsNullOrEmpty(urlProp.GetString()))
                             {
                                 string url = urlProp.GetString()!;
-                                Log($"Tunnel créé avec succès: {url}", LogLevel.Info);
+                                Log($"Tunnel created successfully: {url}", LogLevel.Info);
                                 return url;
                             }
-                            Log("public_url manquante ou vide dans la réponse", LogLevel.Error);
-                            throw new InvalidOperationException("public_url manquante ou vide.");
+                            Log("Missing or empty public_url in response", LogLevel.Error);
+                            throw new InvalidOperationException("Missing or empty public_url.");
                         }
 
-                        Log("Aucun tunnel disponible dans la réponse ngrok", LogLevel.Error);
-                        throw new InvalidOperationException("Aucun tunnel disponible dans la réponse ngrok.");
+                        Log("No tunnel available in ngrok response", LogLevel.Error);
+                        throw new InvalidOperationException("No tunnel available in ngrok response.");
                     }
                     catch (Exception ex) when (attempt + 1 < maxAttempts)
                     {
-                        Log($"Tentative #{attempt + 1} échouée: {ex.Message}", LogLevel.Warning);
+                        Log($"Attempt #{attempt + 1} failed: {ex.Message}", LogLevel.Warning);
                         await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt + 1)), ct);
                     }
                 }
 
-                Log($"Impossible de joindre l'API ngrok après {maxAttempts} tentatives", LogLevel.Error);
-                throw new InvalidOperationException($"Impossible de joindre l'API ngrok après {maxAttempts} tentatives.");
+                Log($"Unable to reach ngrok API after {maxAttempts} attempts", LogLevel.Error);
+                throw new InvalidOperationException($"Unable to reach ngrok API after {maxAttempts} attempts.");
             }
             catch (Exception ex)
             {
-                Log($"Erreur lors de la création du tunnel: {ex.Message}", LogLevel.Error);
+                Log($"Error while creating tunnel: {ex.Message}", LogLevel.Error);
                 StopTunnel();
                 throw;
             }
@@ -159,7 +160,7 @@ namespace NodaStack
         {
             try
             {
-                Log("Arrêt du tunnel ngrok", LogLevel.Info);
+                Log("Stopping ngrok tunnel", LogLevel.Info);
                 Process.Start(new ProcessStartInfo("docker", $"stop {ContainerName}")
                 {
                     RedirectStandardError = true,
@@ -169,7 +170,7 @@ namespace NodaStack
             }
             catch (Exception ex)
             {
-                Log($"Erreur lors de l'arrêt du tunnel: {ex.Message}", LogLevel.Warning);
+                Log($"Error while stopping tunnel: {ex.Message}", LogLevel.Warning);
             }
         }
 

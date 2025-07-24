@@ -104,12 +104,12 @@ namespace NodaStack
 
             if (string.IsNullOrEmpty(token))
             {
-                MessageBox.Show("Veuillez entrer un token ngrok.", "Token manquant", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter an ngrok token.", "Missing token", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             VerifyNgrokTokenButton.IsEnabled = false;
-            VerifyNgrokTokenButton.Content = "Vérification...";
+            VerifyNgrokTokenButton.Content = "Verifying...";
 
             try
             {
@@ -118,23 +118,23 @@ namespace NodaStack
 
                 if (isValid)
                 {
-                    MessageBox.Show("Le token ngrok est valide!", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("The ngrok token is valid!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    MessageBox.Show("Le token ngrok semble invalide. Veuillez vérifier votre token et réessayer.",
-                                  "Token invalide", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("The ngrok token appears to be invalid. Please check your token and try again.",
+                                  "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la vérification du token: {ex.Message}",
-                              "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error while verifying the token: {ex.Message}",
+                              "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
                 VerifyNgrokTokenButton.IsEnabled = true;
-                VerifyNgrokTokenButton.Content = "Vérifier";
+                VerifyNgrokTokenButton.Content = "Verify";
             }
         }
 

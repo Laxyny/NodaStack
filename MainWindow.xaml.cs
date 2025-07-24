@@ -78,17 +78,17 @@ namespace NodaStack
 
             try
             {
-                Debug.WriteLine("CheckForUpdatesOnStartup: Démarrage");
+                Debug.WriteLine("CheckForUpdatesOnStartup: Starting");
                 await Task.Delay(2000);
 
                 statusBarManager.UpdateStatus("⟳ Checking for updates...");
-                Debug.WriteLine("CheckForUpdatesOnStartup: Avant appel à CheckForUpdatesAsync");
+                Debug.WriteLine("CheckForUpdatesOnStartup: Before calling CheckForUpdatesAsync");
 
                 try
                 {
                     var updateChecker = new UpdateChecker();
                     var updateInfo = await updateChecker.CheckForUpdatesAsync();
-                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync terminé avec succès");
+                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync completed successfully");
 
                     if (updateInfo != null && updateInfo.IsUpdateAvailable && configManager.Configuration.Settings.AutoInstallUpdates)
                     {
@@ -98,14 +98,14 @@ namespace NodaStack
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"CheckForUpdatesOnStartup: Erreur dans CheckForUpdatesAsync: {ex}");
+                    Debug.WriteLine($"CheckForUpdatesOnStartup: Error in CheckForUpdatesAsync: {ex}");
                 }
 
                 statusBarManager.UpdateStatus("Ready");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"CheckForUpdatesOnStartup: Exception générale: {ex}");
+                Debug.WriteLine($"CheckForUpdatesOnStartup: General exception: {ex}");
                 Log($"Error during update check: {ex.Message}", LogLevel.Error, "Updates");
                 statusBarManager.UpdateStatus("Ready");
             }
@@ -956,46 +956,46 @@ namespace NodaStack
                     if (string.IsNullOrEmpty(config.NgrokAuthToken))
                     {
                         NotificationManager.ShowNotification(
-                            "Configuration requise",
-                            "Veuillez configurer votre token ngrok dans les paramètres.",
+                            "Configuration required",
+                            "Please configure your ngrok token in the settings.",
                             NotificationType.Warning
                         );
                         OpenConfiguration();
                         return;
                     }
 
-                    statusBarManager.UpdateStatus("Création du tunnel ngrok...");
+                    statusBarManager.UpdateStatus("Creating ngrok tunnel...");
                     var tunnelService = new TunnelService(config.NgrokAuthToken, logManager);
-                    Log("Démarrage du partage du projet...", LogLevel.Info, "Share");
+                    Log("Starting project sharing...", LogLevel.Info, "Share");
 
                     string url = await tunnelService.StartTunnelAsync(project.Name, config.ApachePort);
 
-                    // Copier l'URL dans le presse-papiers de façon sécurisée
+                    // Securely copy the URL to the clipboard
                     try
                     {
                         System.Windows.Clipboard.SetText(url);
-                        Log("URL copiée dans le presse-papiers", LogLevel.Info, "Share");
+                        Log("URL copied to clipboard", LogLevel.Info, "Share");
                     }
                     catch (Exception clipboardEx)
                     {
-                        Log($"Impossible de copier l'URL dans le presse-papiers: {clipboardEx.Message}", LogLevel.Warning, "Share");
-                        // Continuer malgré l'erreur de presse-papiers
+                        Log($"Unable to copy URL to clipboard: {clipboardEx.Message}", LogLevel.Warning, "Share");
+                        // Continue despite clipboard error
                     }
 
                     NotificationManager.ShowNotification(
-                        "Projet partagé",
-                        $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copiée dans le presse-papiers)" : "")}",
+                        "Project shared",
+                        $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copied to clipboard)" : "")}",
                         NotificationType.Success,
                         8000
                     );
-                    Log($"Projet '{project.Name}' partagé à l'adresse {url}", LogLevel.Info, "Share");
-                    statusBarManager.UpdateStatus("Prêt");
+                    Log($"Project '{project.Name}' shared at {url}", LogLevel.Info, "Share");
+                    statusBarManager.UpdateStatus("Ready");
                 }
                 catch (Exception ex)
                 {
-                    Log($"Erreur de partage: {ex.Message}", LogLevel.Error, "Share");
-                    NotificationManager.ShowNotification("Erreur de partage", ex.Message, NotificationType.Error);
-                    statusBarManager.UpdateStatus("Prêt");
+                    Log($"Share error: {ex.Message}", LogLevel.Error, "Share");
+                    NotificationManager.ShowNotification("Share error", ex.Message, NotificationType.Error);
+                    statusBarManager.UpdateStatus("Ready");
                 }
             }
         }

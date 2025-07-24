@@ -332,13 +332,13 @@
                                     <TextBlock Grid.Row="0"
                                             Grid.Column="0"
                                             Grid.ColumnSpan="3"
-                                               Text="Pour partager vos projets via Internet, vous devez configurer un token d'authentification ngrok."
+                                               Text="To share your projects on the Internet, you must configure an ngrok authentication token."
                                                TextWrapping="Wrap"
                                             Margin="0,0,0,10"/>
 
                                     <TextBlock Grid.Row="1"
                                             Grid.Column="0"
-                                            Text="Token ngrok:"
+                                            Text="ngrok token:"
                                                VerticalAlignment="Center"
                                             Margin="0,0,10,0"/>
                                     <PasswordBox Grid.Row="1"
@@ -348,7 +348,7 @@
                                             VerticalAlignment="Center"/>
                                     <Button Grid.Row="1"
                                             Grid.Column="2"
-                                            Content="Vérifier"
+                                            Content="Verify"
                                             x:Name="VerifyNgrokTokenButton"
                                             Click="VerifyNgrokToken_Click"
                                             Width="80"
@@ -360,7 +360,7 @@
                                             Margin="0,10,0,0">
             <Hyperlink NavigateUri="https://dashboard.ngrok.com/get-started/your-authtoken"
                                         RequestNavigate="Hyperlink_RequestNavigate">
-                Obtenir un token gratuit sur ngrok.com
+                Get a free token on ngrok.com
             </Hyperlink>
                                     </TextBlock>
                                 </Grid>
