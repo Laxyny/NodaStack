@@ -315,8 +315,14 @@
                                         Click="BrowseProjectsPath_Click"/>
                             </Grid>
 
-                            <GroupBox Header="Ngrok (Partage de projets)"
-                                    Margin="5">
+                            <GroupBox Header="Ngrok Configuration - Project Sharing"
+                                      Margin="0,20,0,0"
+                                      Padding="10"
+                                      BorderThickness="1"
+                                      BorderBrush="#DDDDDD"
+                                      Background="#F5F5F5"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -330,34 +336,27 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Row="0"
-                                            Grid.Column="0"
-                                            Grid.ColumnSpan="3"
+                                               Grid.Column="0"
+                                               Grid.ColumnSpan="3"
                                                Text="To share your projects on the Internet, you must configure an ngrok authentication token."
                                                TextWrapping="Wrap"
-                                            Margin="0,0,0,10"/>
+                                               Margin="0,0,0,10"/>
 
                                     <TextBlock Grid.Row="1"
-                                            Grid.Column="0"
-                                            Text="ngrok token:"
+                                               Grid.Column="0"
+                                               Text="ngrok token:"
                                                VerticalAlignment="Center"
-                                            Margin="0,0,10,0"/>
+                                               Margin="0,0,10,0"/>
                                     <PasswordBox Grid.Row="1"
-                                            Grid.Column="1"
-                                            x:Name="NgrokTokenPasswordBox"
+                                                 Grid.Column="1"
+                                                 x:Name="NgrokTokenPasswordBox"
                                                  Margin="0,0,5,0"
-                                            VerticalAlignment="Center"/>
-                                    <Button Grid.Row="1"
-                                            Grid.Column="2"
-                                            Content="Verify"
-                                            x:Name="VerifyNgrokTokenButton"
-                                            Click="VerifyNgrokToken_Click"
-                                            Width="80"
-                                            Height="25"/>
+                                                 VerticalAlignment="Center"/>
 
                                     <TextBlock Grid.Row="2"
-                                            Grid.Column="0"
-                                            Grid.ColumnSpan="3"
-                                            Margin="0,10,0,0">
+                                               Grid.Column="0"
+                                               Grid.ColumnSpan="3"
+                                               Margin="0,10,0,0">
             <Hyperlink NavigateUri="https://dashboard.ngrok.com/get-started/your-authtoken"
                                         RequestNavigate="Hyperlink_RequestNavigate">
                 Get a free token on ngrok.com

@@ -98,46 +98,6 @@ namespace NodaStack
             PhpMyAdminPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
         }
 
-        private async void VerifyNgrokToken_Click(object sender, RoutedEventArgs e)
-        {
-            string token = NgrokTokenPasswordBox.Password;
-
-            if (string.IsNullOrEmpty(token))
-            {
-                MessageBox.Show("Please enter an ngrok token.", "Missing token", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            VerifyNgrokTokenButton.IsEnabled = false;
-            VerifyNgrokTokenButton.Content = "Verifying...";
-
-            try
-            {
-                var tunnelService = new TunnelService(token);
-                bool isValid = await tunnelService.TestNgrokAuthTokenAsync(token);
-
-                if (isValid)
-                {
-                    MessageBox.Show("The ngrok token is valid!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show("The ngrok token appears to be invalid. Please check your token and try again.",
-                                  "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error while verifying the token: {ex.Message}",
-                              "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                VerifyNgrokTokenButton.IsEnabled = true;
-                VerifyNgrokTokenButton.Content = "Verify";
-            }
-        }
-
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
