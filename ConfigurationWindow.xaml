@@ -1,13 +1,15 @@
 <Window x:Class="NodaStack.ConfigurationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
         Title="NodaStack Configuration"
         Icon="Assets/NodaStackLogo.ico"
         Height="600"
         Width="800"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        ui:WindowHelper.UseModernWindowStyle="True">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>

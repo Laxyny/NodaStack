@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="9.0.7" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
     <ProjectReference Include="Core/NodaStack.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

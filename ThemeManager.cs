@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
+using ModernWpf;
 
 namespace NodaStack
 {
@@ -32,6 +33,7 @@ namespace NodaStack
             try
             {
                 app.Resources.Clear();
+                ModernWpf.ThemeManager.Current.ApplicationTheme = isDark ? ApplicationTheme.Dark : ApplicationTheme.Light;
 
                 if (isDark)
                 {
