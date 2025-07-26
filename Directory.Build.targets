@@ -3,6 +3,7 @@
         <MakeDir Directories="$(IntermediateOutputPath)" />
         <PropertyGroup>
             <EnvVersion>$([System.Environment]::GetEnvironmentVariable('NODASTACK_BUILD_VERSION'))</EnvVersion>
+            <DefaultVersion>2025.07.26.44</DefaultVersion>
         </PropertyGroup>
         <Exec Command="git describe --tags --abbrev=0 &gt; $(IntermediateOutputPath)gitversion.txt" Condition="'$(EnvVersion)' == ''" />
         <ReadLinesFromFile File="$(IntermediateOutputPath)gitversion.txt" Condition="'$(EnvVersion)' == ''">
@@ -15,6 +16,9 @@
         </PropertyGroup>
         <PropertyGroup Condition="'$(EnvVersion)' != ''">
             <GitVersion>$(EnvVersion)</GitVersion>
+        </PropertyGroup>
+        <PropertyGroup Condition="'$(GitVersion)' == ''">
+            <GitVersion>$(DefaultVersion)</GitVersion>
         </PropertyGroup>
         <ItemGroup>
             <VersionLines Include="[assembly: System.Reflection.AssemblyVersion(&quot;$(GitVersion)&quot;)]" />

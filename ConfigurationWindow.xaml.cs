@@ -330,25 +330,29 @@ namespace NodaStack
                 {
                     LatestVersionText.Text = updateInfo.Version;
 
-                                    if (updateInfo.IsUpdateAvailable)
-                {
-                    LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
-                }
-                else
-                {
-                    LatestVersionText.Foreground = new SolidColorBrush(Colors.Black);
-                }
+                    if (updateInfo.IsUpdateAvailable)
+                    {
+                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
+                        DownloadUpdateButton.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Black);
+                        DownloadUpdateButton.Visibility = Visibility.Collapsed;
+                    }
                 }
                 else
                 {
                     LatestVersionText.Text = "Unknown";
                     LatestVersionText.Foreground = new SolidColorBrush(Colors.Gray);
+                    DownloadUpdateButton.Visibility = Visibility.Collapsed;
                 }
             }
             catch (Exception)
             {
                 LatestVersionText.Text = "Error checking";
                 LatestVersionText.Foreground = new SolidColorBrush(Colors.Red);
+                DownloadUpdateButton.Visibility = Visibility.Collapsed;
             }
         }
 

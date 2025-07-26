@@ -459,7 +459,16 @@
                                 Content="Check for Updates"
                                 Click="CheckUpdatesButton_Click"
                                 Style="{StaticResource DefaultButtonStyle}"
-                                HorizontalAlignment="Center"/>
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,12"/>
+                        <Button x:Name="DownloadUpdateButton"
+                                Width="160"
+                                Height="36"
+                                Content="Download &amp; Install Update"
+                                Click="DownloadAndInstallUpdate_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Center"
+                                Visibility="Collapsed"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
