@@ -12,10 +12,7 @@ using System.Windows;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("2025.07.26.41")]
-[assembly: AssemblyFileVersion("2025.07.26.41")]
-
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None,
     ResourceDictionaryLocation.SourceAssembly
-)]
+)] 

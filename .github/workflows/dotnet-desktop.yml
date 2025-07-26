@@ -55,25 +55,13 @@ jobs:
         run: |
           "NODASTACK_BUILD_VERSION=${{ steps.set-version.outputs.version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Apply version to csproj
+      - name: Apply version to Directory.Build.targets
         shell: pwsh
         run: |
-          $Csproj = "NodaStack.csproj"
-          (Get-Content $Csproj) `
-            -replace '<Version>.*?</Version>', "<Version>${{ steps.set-version.outputs.version }}</Version>" `
-            -replace '<AssemblyVersion>.*?</AssemblyVersion>', "<AssemblyVersion>${{ steps.set-version.outputs.version }}</AssemblyVersion>" `
-            -replace '<FileVersion>.*?</FileVersion>', "<FileVersion>${{ steps.set-version.outputs.version }}</FileVersion>" `
-            -replace '<InformationalVersion>.*?</InformationalVersion>', "<InformationalVersion>${{ steps.set-version.outputs.version }}</InformationalVersion>" `
-            | Set-Content $Csproj
-
-      - name: Apply version to AssemblyInfo.cs
-        shell: pwsh
-        run: |
-          $AssemblyInfo = "AssemblyInfo.cs"
-          (Get-Content $AssemblyInfo) `
-            -replace 'AssemblyVersion\(".*?"\)', "AssemblyVersion(`"${{ steps.set-version.outputs.version }}`")" `
-            -replace 'AssemblyFileVersion\(".*?"\)', "AssemblyFileVersion(`"${{ steps.set-version.outputs.version }}`")" `
-            | Set-Content $AssemblyInfo
+          $BuildTargets = "Directory.Build.targets"
+          (Get-Content $BuildTargets) `
+            -replace '&quot;.*?&quot;', "&quot;${{ steps.set-version.outputs.version }}&quot;" `
+            | Set-Content $BuildTargets
 
       - name: Restore dependencies
         run: dotnet restore $env:Solution_Name
