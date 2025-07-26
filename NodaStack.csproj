@@ -9,6 +9,10 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <Version>2025.07.26.41</Version>
+    <AssemblyVersion>2025.07.26.41</AssemblyVersion>
+    <FileVersion>2025.07.26.41</FileVersion>
+    <InformationalVersion>2025.07.26.41</InformationalVersion>
     <Company>Nodasys</Company>
     <Product>NodaStack</Product>
     <Description>A modern, Docker-powered local web server manager for Windows.</Description>

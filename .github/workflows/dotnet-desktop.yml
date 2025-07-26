@@ -66,6 +66,15 @@ jobs:
             -replace '<InformationalVersion>.*?</InformationalVersion>', "<InformationalVersion>${{ steps.set-version.outputs.version }}</InformationalVersion>" `
             | Set-Content $Csproj
 
+      - name: Apply version to AssemblyInfo.cs
+        shell: pwsh
+        run: |
+          $AssemblyInfo = "AssemblyInfo.cs"
+          (Get-Content $AssemblyInfo) `
+            -replace 'AssemblyVersion\(".*?"\)', "AssemblyVersion(`"${{ steps.set-version.outputs.version }}`")" `
+            -replace 'AssemblyFileVersion\(".*?"\)', "AssemblyFileVersion(`"${{ steps.set-version.outputs.version }}`")" `
+            | Set-Content $AssemblyInfo
+
       - name: Restore dependencies
         run: dotnet restore $env:Solution_Name
 
