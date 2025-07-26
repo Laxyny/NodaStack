@@ -3,12 +3,15 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
 using ModernWpf;
+using ModernWpf.Controls;
 
 namespace NodaStack
 {
     public static class ThemeManager
     {
         public static event Action<bool>? ThemeChanged;
+
+        public static Color AccentColor { get; set; } = Color.FromRgb(0x00, 0x7A, 0xCC);
 
         private static bool _isDarkTheme = false;
         public static bool IsDarkTheme
@@ -33,7 +36,13 @@ namespace NodaStack
             try
             {
                 app.Resources.Clear();
+                app.Resources.MergedDictionaries.Add(new ThemeResources());
+                app.Resources.MergedDictionaries.Add(new XamlControlsResources());
+
                 ModernWpf.ThemeManager.Current.ApplicationTheme = isDark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+                ModernWpf.ThemeManager.Current.AccentColor = AccentColor;
+
+                app.Resources["AccentBrush"] = new SolidColorBrush(AccentColor);
 
                 if (isDark)
                 {
@@ -66,6 +75,7 @@ namespace NodaStack
                 ApplyTextBoxStyle();
                 ApplyListViewStyle();
                 ApplyGroupBoxStyle();
+                ApplyAccentButtonStyle();
             }
             catch (Exception ex)
             {
@@ -129,6 +139,24 @@ namespace NodaStack
             groupBoxStyle.Setters.Add(new Setter(GroupBox.BorderBrushProperty, app.Resources["BorderBrush"]));
 
             app.Resources[typeof(GroupBox)] = groupBoxStyle;
+        }
+
+        private static void ApplyAccentButtonStyle()
+        {
+            var app = Application.Current;
+            if (app == null) return;
+
+            var baseStyle = app.Resources[typeof(Button)] as Style;
+            var accentStyle = new Style(typeof(Button), baseStyle);
+            accentStyle.Setters.Add(new Setter(Button.BackgroundProperty, app.Resources["AccentBrush"]));
+            accentStyle.Setters.Add(new Setter(Button.BorderBrushProperty, app.Resources["AccentBrush"]));
+            accentStyle.Setters.Add(new Setter(Button.ForegroundProperty, Brushes.White));
+
+            var hoverTrigger = new Trigger { Property = Button.IsMouseOverProperty, Value = true };
+            hoverTrigger.Setters.Add(new Setter(Button.BackgroundProperty, new SolidColorBrush(Color.FromRgb(0x10, 0x84, 0xD4))));
+            accentStyle.Triggers.Add(hoverTrigger);
+
+            app.Resources["AccentButtonStyle"] = accentStyle;
         }
 
         public static void Initialize(bool isDarkTheme)

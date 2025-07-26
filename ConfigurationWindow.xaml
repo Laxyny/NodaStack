@@ -9,6 +9,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
+        Background="{DynamicResource BackgroundBrush}"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <Grid Margin="20">

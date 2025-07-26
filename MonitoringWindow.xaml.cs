@@ -17,6 +17,7 @@ namespace NodaStack
         public MonitoringWindow(LogManager logManager)
         {
             InitializeComponent();
+            ThemeManager.ApplyTheme(ThemeManager.IsDarkTheme);
             this.logManager = logManager;
 
             Loaded += MonitoringWindow_Loaded;

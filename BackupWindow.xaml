@@ -9,7 +9,7 @@
         Height="650"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
-        Background="#1E1E1E"
+        Background="{DynamicResource BackgroundBrush}"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <Window.Resources>
@@ -18,11 +18,11 @@
         <Style x:Key="ModernButton"
                 TargetType="Button">
             <Setter Property="Background"
-                    Value="#3C3C3C"/>
+                    Value="{DynamicResource ButtonBackgroundBrush}"/>
             <Setter Property="Foreground"
-                    Value="White"/>
+                    Value="{DynamicResource ForegroundBrush}"/>
             <Setter Property="BorderBrush"
-                    Value="#555555"/>
+                    Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness"
                     Value="1"/>
             <Setter Property="Padding"
@@ -35,12 +35,12 @@
                 <Trigger Property="IsMouseOver"
                         Value="True">
                     <Setter Property="Background"
-                            Value="#4C4C4C"/>
+                            Value="{DynamicResource ButtonHoverBrush}"/>
                 </Trigger>
                 <Trigger Property="IsPressed"
                         Value="True">
                     <Setter Property="Background"
-                            Value="#2C2C2C"/>
+                            Value="{DynamicResource ButtonBackgroundBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -49,7 +49,9 @@
                 TargetType="Button"
                 BasedOn="{StaticResource ModernButton}">
             <Setter Property="Background"
-                    Value="#007ACC"/>
+                    Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource AccentBrush}"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver"
                         Value="True">
@@ -127,7 +129,7 @@
 
         <!-- Header -->
         <Border Grid.Row="0"
-                Background="#2D2D30"
+                Background="{DynamicResource GroupBoxBackgroundBrush}"
                 Padding="20">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -142,7 +144,7 @@
                                Foreground="White"/>
                     <TextBlock Text="Create backups and restore your NodaStack configuration"
                                FontSize="13"
-                               Foreground="#CCCCCC"
+                               Foreground="Gray"
                                Margin="0,5,0,0"/>
                 </StackPanel>
 
@@ -189,8 +191,8 @@
                            Margin="0,0,0,15"/>
 
                 <Border Grid.Row="1"
-                        Background="#2D2D30"
-                        BorderBrush="#3C3C3C"
+                        Background="{DynamicResource GroupBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4">
                     <DataGrid Name="BackupDataGrid"
@@ -202,7 +204,7 @@
                               Background="Transparent"
                               Foreground="White"
                               GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#3C3C3C"
+                              HorizontalGridLinesBrush="{DynamicResource BorderBrush}"
                               HeadersVisibility="Column"
                               SelectionMode="Single"
                               SelectionChanged="BackupDataGrid_SelectionChanged"
@@ -233,14 +235,14 @@
                                     <Trigger Property="IsSelected"
                                             Value="True">
                                         <Setter Property="Background"
-                                                Value="#007ACC"/>
+                                                Value="{DynamicResource AccentBrush}"/>
                                         <Setter Property="Foreground"
                                                 Value="White"/>
                                     </Trigger>
                                     <Trigger Property="IsMouseOver"
                                             Value="True">
                                         <Setter Property="Background"
-                                                Value="#3C3C3C"/>
+                                                Value="{DynamicResource ButtonHoverBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -248,15 +250,15 @@
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background"
-                                        Value="#3C3C3C"/>
+                                        Value="{DynamicResource ButtonBackgroundBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="White"/>
+                                        Value="{DynamicResource ForegroundBrush}"/>
                                 <Setter Property="FontWeight"
                                         Value="Bold"/>
                                 <Setter Property="FontSize"
                                         Value="12"/>
                                 <Setter Property="BorderBrush"
-                                        Value="#555555"/>
+                                        Value="{DynamicResource BorderBrush}"/>
                                 <Setter Property="BorderThickness"
                                         Value="0,0,1,1"/>
                                 <Setter Property="Padding"
@@ -294,8 +296,8 @@
             <StackPanel Grid.Column="1"
                     Orientation="Vertical">
                 <!-- Create Backup Section -->
-                <Border Background="#2D2D30"
-                        BorderBrush="#3C3C3C"
+                <Border Background="{DynamicResource GroupBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="15"
@@ -308,9 +310,9 @@
                                    Margin="0,0,0,15"/>
 
                         <TextBox Name="BackupNameTextBox"
-                                 Background="#1E1E1E"
-                                 Foreground="White"
-                                 BorderBrush="#555555"
+                                 Background="{DynamicResource TextBoxBackgroundBrush}"
+                                 Foreground="{DynamicResource ForegroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
                                  BorderThickness="1"
                                  Padding="8"
                                  Height="32"
@@ -319,7 +321,7 @@
 
                         <TextBlock Text="Leave empty for auto-generated name"
                                    FontSize="11"
-                                   Foreground="#AAAAAA"
+                                   Foreground="Gray"
                                    Margin="0,0,0,15"/>
 
                         <Button Name="CreateFullBackupButton"
@@ -338,8 +340,8 @@
                 </Border>
 
                 <!-- Import/Export Section -->
-                <Border Background="#2D2D30"
-                        BorderBrush="#3C3C3C"
+                <Border Background="{DynamicResource GroupBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="15"
@@ -368,8 +370,8 @@
                 </Border>
 
                 <!-- Actions Section -->
-                <Border Background="#2D2D30"
-                        BorderBrush="#3C3C3C"
+                <Border Background="{DynamicResource GroupBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="15"
@@ -399,8 +401,8 @@
                 </Border>
 
                 <!-- Backup Details Section -->
-                <Border Background="#2D2D30"
-                        BorderBrush="#3C3C3C"
+                <Border Background="{DynamicResource GroupBoxBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="15">
@@ -415,7 +417,7 @@
                                       VerticalScrollBarVisibility="Auto">
                             <StackPanel Name="BackupDetailsPanel">
                                 <TextBlock Text="Select a backup to view details"
-                                           Foreground="#AAAAAA"
+                                           Foreground="Gray"
                                            FontStyle="Italic"
                                            FontSize="12"/>
                             </StackPanel>
@@ -427,9 +429,9 @@
 
         <!-- Status Bar -->
         <Border Grid.Row="2"
-                Background="#007ACC"
+                Background="{DynamicResource AccentBrush}"
                 Height="28"
-                BorderBrush="#005A9E"
+                BorderBrush="{DynamicResource AccentBrush}"
                 BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>

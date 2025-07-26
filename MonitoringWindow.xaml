@@ -8,6 +8,7 @@
         Width="800"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BackgroundBrush}"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <Grid Margin="10">
