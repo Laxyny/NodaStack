@@ -466,9 +466,79 @@
                                 Height="36"
                                 Content="Download &amp; Install Update"
                                 Click="DownloadAndInstallUpdate_Click"
-                                Style="{StaticResource AccentButtonStyle}"
+                                Style="{StaticResource DefaultButtonStyle}"
                                 HorizontalAlignment="Center"
                                 Visibility="Collapsed"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Behavior Tab -->
+            <TabItem Header="Behavior">
+                <Grid Margin="24">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="Application behavior"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,24"
+                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+                    <StackPanel Grid.Row="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Width="400">
+                        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="20"
+                                Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="System Tray"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,12"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                <CheckBox x:Name="MinimizeToTrayCheckBox"
+                                         Content="Minimize to system tray when closing"
+                                         FontSize="13"
+                                         Margin="0,0,0,8"/>
+                                <CheckBox x:Name="StartMinimizedCheckBox"
+                                         Content="Start minimized to system tray"
+                                         FontSize="13"
+                                         Margin="0,0,0,8"/>
+                                <CheckBox x:Name="ShowTrayNotificationsCheckBox"
+                                         Content="Show notifications in system tray"
+                                         FontSize="13"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="Docker Integration"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,12"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                <CheckBox x:Name="AutoStartDockerCheckBox"
+                                         Content="Auto-start Docker containers on launch"
+                                         FontSize="13"
+                                         Margin="0,0,0,8"/>
+                                <CheckBox x:Name="KeepDockerRunningCheckBox"
+                                         Content="Keep Docker running when minimizing"
+                                         FontSize="13"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
             </TabItem>

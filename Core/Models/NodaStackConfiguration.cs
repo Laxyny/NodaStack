@@ -44,4 +44,13 @@ public class NodaStackSettings
     public bool AutoCheckUpdates { get; set; } = true;
     public bool AutoInstallUpdates { get; set; } = false;
     public string Language { get; set; } = "en";
+    
+    // System Tray Settings
+    public bool MinimizeToTray { get; set; } = false;
+    public bool StartMinimized { get; set; } = false;
+    public bool ShowTrayNotifications { get; set; } = true;
+    
+    // Docker Integration Settings
+    public bool AutoStartDocker { get; set; } = false;
+    public bool KeepDockerRunning { get; set; } = true;
 }

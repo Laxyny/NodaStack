@@ -71,6 +71,9 @@ namespace NodaStack
                 await Task.Delay(100);
                 Dispatcher.Invoke(() => CheckPorts_Click(null, null));
             });
+
+            // Load behavior settings
+            LoadBehaviorSettings();
         }
 
 
@@ -389,6 +392,29 @@ namespace NodaStack
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             Save_Click(sender, e);
+        }
+
+        private void LoadBehaviorSettings()
+        {
+            // Load behavior settings from configuration
+            MinimizeToTrayCheckBox.IsChecked = configManager.Configuration.Settings.MinimizeToTray;
+            StartMinimizedCheckBox.IsChecked = configManager.Configuration.Settings.StartMinimized;
+            ShowTrayNotificationsCheckBox.IsChecked = configManager.Configuration.Settings.ShowTrayNotifications;
+            AutoStartDockerCheckBox.IsChecked = configManager.Configuration.Settings.AutoStartDocker;
+            KeepDockerRunningCheckBox.IsChecked = configManager.Configuration.Settings.KeepDockerRunning;
+        }
+
+        private void SaveBehaviorSettings()
+        {
+            // Save behavior settings to configuration
+            var currentSettings = configManager.GetConfiguration().Settings;
+            currentSettings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false;
+            currentSettings.StartMinimized = StartMinimizedCheckBox.IsChecked ?? false;
+            currentSettings.ShowTrayNotifications = ShowTrayNotificationsCheckBox.IsChecked ?? true;
+            currentSettings.AutoStartDocker = AutoStartDockerCheckBox.IsChecked ?? false;
+            currentSettings.KeepDockerRunning = KeepDockerRunningCheckBox.IsChecked ?? true;
+            
+            configManager.UpdateSettings(currentSettings);
         }
     }
 }
