@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,104 +5,247 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 
 namespace NodaStack
 {
     public partial class BackupWindow : Window
     {
-        private readonly BackupManager backupManager;
-        private readonly LogManager logManager;
-        private List<BackupInfo> backups;
+        private BackupManager backupManager;
+        private List<BackupInfo> backupList;
         private BackupInfo? selectedBackup;
 
-        public BackupWindow(BackupManager backupManager, LogManager logManager)
+        public BackupWindow()
         {
             InitializeComponent();
-            this.backupManager = backupManager;
-            this.logManager = logManager;
-            this.backups = new List<BackupInfo>();
-
-            LoadBackups();
+            backupManager = new BackupManager(new ConfigurationManager(), new LogManager());
+            backupList = new List<BackupInfo>();
+            LoadBackupHistory();
         }
 
-        private void LoadBackups()
+        private void LoadBackupHistory()
         {
             try
             {
-                backups = backupManager.GetBackupList();
-                BackupDataGrid.ItemsSource = backups;
-
-                StatusTextBlock.Text = $"Loaded {backups.Count} backup(s)";
+                backupList = backupManager.GetBackupList();
+                BackupHistoryListView.ItemsSource = backupList;
+                StatusText.Text = $"Loaded {backupList.Count} backup(s)";
             }
             catch (Exception ex)
             {
-                logManager.Log($"Error loading backups: {ex.Message}", LogLevel.Error, "Backup");
-                StatusTextBlock.Text = "Error loading backups";
+                StatusText.Text = $"Error loading backups: {ex.Message}";
             }
+        }
+
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadBackupHistory();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private bool ValidateBackupName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return true; // Auto-generated name is OK
+
+            // Check for invalid characters
+            var invalidChars = Path.GetInvalidFileNameChars();
+            if (name.Any(c => invalidChars.Contains(c)))
+            {
+                MessageBox.Show("Backup name contains invalid characters. Please use only letters, numbers, spaces, and common punctuation.", 
+                    "Invalid Backup Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            // Check if name already exists
+            var existingBackup = backupList.FirstOrDefault(b => b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (existingBackup != null)
+            {
+                var result = MessageBox.Show($"A backup named '{name}' already exists. Do you want to replace it?", 
+                    "Backup Name Exists", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                return result == MessageBoxResult.Yes;
+            }
+
+            return true;
         }
 
         private async void CreateFullBackupButton_Click(object sender, RoutedEventArgs e)
         {
-            await CreateBackupAsync(BackupType.Full);
-        }
-
-        private async void CreateConfigBackupButton_Click(object sender, RoutedEventArgs e)
-        {
-            await CreateBackupAsync(BackupType.Configuration);
-        }
-
-        private async Task CreateBackupAsync(BackupType backupType)
-        {
             try
             {
-                var backupName = BackupNameTextBox.Text.Trim();
+                string backupName = BackupNameTextBox.Text.Trim();
+                if (!ValidateBackupName(backupName))
+                    return;
 
-                SetOperationInProgress(true, $"Creating {backupType.ToString().ToLower()} backup...");
-
-                bool success = false;
-
-                await Task.Run(async () =>
+                if (string.IsNullOrEmpty(backupName))
                 {
-                    if (backupType == BackupType.Full)
-                    {
-                        success = await backupManager.CreateFullBackupAsync(backupName);
-                    }
-                    else if (backupType == BackupType.Configuration)
-                    {
-                        success = await backupManager.CreateConfigBackupAsync(backupName);
-                    }
-                });
+                    backupName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm}";
+                }
 
+                StatusText.Text = "Creating full backup...";
+                CreateFullBackupButton.IsEnabled = false;
+                CreateConfigBackupButton.IsEnabled = false;
+
+                var success = await backupManager.CreateFullBackupAsync(backupName);
+                
                 if (success)
                 {
-                    StatusTextBlock.Text = $"{backupType} backup created successfully";
+                    StatusText.Text = "Full backup created successfully";
+                    LoadBackupHistory();
                     BackupNameTextBox.Clear();
-                    LoadBackups();
+                    NotificationManager.ShowNotification("Backup Created", "Full backup completed successfully", NotificationType.Success);
                 }
                 else
                 {
-                    StatusTextBlock.Text = $"Failed to create {backupType.ToString().ToLower()} backup";
+                    StatusText.Text = "Failed to create full backup";
+                    NotificationManager.ShowNotification("Backup Failed", "Failed to create full backup", NotificationType.Error);
                 }
             }
             catch (Exception ex)
             {
-                logManager.Log($"Error creating backup: {ex.Message}", LogLevel.Error, "Backup");
-                StatusTextBlock.Text = "Error creating backup";
+                StatusText.Text = $"Error creating backup: {ex.Message}";
+                NotificationManager.ShowNotification("Backup Error", $"Error creating backup: {ex.Message}", NotificationType.Error);
             }
             finally
             {
-                SetOperationInProgress(false);
+                CreateFullBackupButton.IsEnabled = true;
+                CreateConfigBackupButton.IsEnabled = true;
+            }
+        }
+
+        private async void CreateConfigBackupButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string backupName = BackupNameTextBox.Text.Trim();
+                if (!ValidateBackupName(backupName))
+                    return;
+
+                if (string.IsNullOrEmpty(backupName))
+                {
+                    backupName = $"config_backup_{DateTime.Now:yyyy-MM-dd_HH-mm}";
+                }
+
+                StatusText.Text = "Creating configuration backup...";
+                CreateFullBackupButton.IsEnabled = false;
+                CreateConfigBackupButton.IsEnabled = false;
+
+                var success = await backupManager.CreateConfigBackupAsync(backupName);
+                
+                if (success)
+                {
+                    StatusText.Text = "Configuration backup created successfully";
+                    LoadBackupHistory();
+                    BackupNameTextBox.Clear();
+                    NotificationManager.ShowNotification("Backup Created", "Configuration backup completed successfully", NotificationType.Success);
+                }
+                else
+                {
+                    StatusText.Text = "Failed to create configuration backup";
+                    NotificationManager.ShowNotification("Backup Failed", "Failed to create configuration backup", NotificationType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Error creating config backup: {ex.Message}";
+                NotificationManager.ShowNotification("Backup Error", $"Error creating config backup: {ex.Message}", NotificationType.Error);
+            }
+            finally
+            {
+                CreateFullBackupButton.IsEnabled = true;
+                CreateConfigBackupButton.IsEnabled = true;
+            }
+        }
+
+        private void ImportBackupButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var openFileDialog = new OpenFileDialog
+                {
+                    Title = "Select Backup File",
+                    Filter = "Backup files (*.zip)|*.zip|All files (*.*)|*.*",
+                    DefaultExt = "zip"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var sourcePath = openFileDialog.FileName;
+                    var fileName = Path.GetFileName(sourcePath);
+                    var targetPath = Path.Combine(backupManager.GetBackupDirectory(), fileName);
+
+                    if (File.Exists(targetPath))
+                    {
+                        var result = MessageBox.Show(
+                            "A backup with this name already exists. Do you want to replace it?",
+                            "Backup Import",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (result != MessageBoxResult.Yes)
+                            return;
+                    }
+
+                    File.Copy(sourcePath, targetPath, true);
+                    StatusText.Text = $"Backup imported successfully: {fileName}";
+                    LoadBackupHistory();
+                    NotificationManager.ShowNotification("Backup Imported", $"Backup '{fileName}' imported successfully", NotificationType.Success);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Error importing backup: {ex.Message}";
+                NotificationManager.ShowNotification("Import Error", $"Error importing backup: {ex.Message}", NotificationType.Error);
+            }
+        }
+
+        private void ExportSelectedButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (selectedBackup == null)
+            {
+                MessageBox.Show("Please select a backup to export.", "Export Backup", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Export Backup",
+                    Filter = "Backup files (*.zip)|*.zip|All files (*.*)|*.*",
+                    DefaultExt = "zip",
+                    FileName = $"{selectedBackup.Name}.zip"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    File.Copy(selectedBackup.FilePath, saveFileDialog.FileName, true);
+                    StatusText.Text = $"Backup exported successfully: {Path.GetFileName(saveFileDialog.FileName)}";
+                    NotificationManager.ShowNotification("Backup Exported", $"Backup exported to {Path.GetFileName(saveFileDialog.FileName)}", NotificationType.Success);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Error exporting backup: {ex.Message}";
+                NotificationManager.ShowNotification("Export Error", $"Error exporting backup: {ex.Message}", NotificationType.Error);
             }
         }
 
         private async void RestoreBackupButton_Click(object sender, RoutedEventArgs e)
         {
             if (selectedBackup == null)
+            {
+                MessageBox.Show("Please select a backup to restore.", "Restore Backup", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
+            }
 
             var result = MessageBox.Show(
-                $"Are you sure you want to restore the backup '{selectedBackup.Name}'?\n\nThis will overwrite current configuration and projects.",
-                "Confirm Restore",
+                $"Are you sure you want to restore the backup '{selectedBackup.Name}'?\n\nThis will overwrite current configuration and data.",
+                "Restore Backup",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -111,32 +253,35 @@ namespace NodaStack
             {
                 try
                 {
-                    SetOperationInProgress(true, "Restoring backup...");
+                    StatusText.Text = "Restoring backup...";
+                    RestoreBackupButton.IsEnabled = false;
+                    DeleteBackupButton.IsEnabled = false;
 
-                    bool success = false;
-                    await Task.Run(async () =>
-                    {
-                        success = await backupManager.RestoreBackupAsync(selectedBackup.FilePath);
-                    });
-
+                    var success = await backupManager.RestoreBackupAsync(selectedBackup.FilePath);
+                    
                     if (success)
                     {
-                        StatusTextBlock.Text = "Backup restored successfully";
-                        MessageBox.Show("Backup restored successfully. Please restart NodaStack to apply changes.", "Restore Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        StatusText.Text = "Backup restored successfully";
+                        NotificationManager.ShowNotification("Backup Restored", "Backup restored successfully", NotificationType.Success);
+                        MessageBox.Show("Backup restored successfully. The application may need to be restarted.", "Restore Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {
-                        StatusTextBlock.Text = "Failed to restore backup";
+                        StatusText.Text = "Failed to restore backup";
+                        NotificationManager.ShowNotification("Restore Failed", "Failed to restore backup", NotificationType.Error);
+                        MessageBox.Show("Failed to restore backup. Please check the logs for details.", "Restore Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)
                 {
-                    logManager.Log($"Error restoring backup: {ex.Message}", LogLevel.Error, "Backup");
-                    StatusTextBlock.Text = "Error restoring backup";
+                    StatusText.Text = $"Error restoring backup: {ex.Message}";
+                    NotificationManager.ShowNotification("Restore Error", $"Error restoring backup: {ex.Message}", NotificationType.Error);
+                    MessageBox.Show($"Error restoring backup: {ex.Message}", "Restore Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 finally
                 {
-                    SetOperationInProgress(false);
+                    RestoreBackupButton.IsEnabled = true;
+                    DeleteBackupButton.IsEnabled = true;
                 }
             }
         }
@@ -144,11 +289,14 @@ namespace NodaStack
         private void DeleteBackupButton_Click(object sender, RoutedEventArgs e)
         {
             if (selectedBackup == null)
+            {
+                MessageBox.Show("Please select a backup to delete.", "Delete Backup", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
+            }
 
             var result = MessageBox.Show(
-                $"Are you sure you want to delete the backup '{selectedBackup.Name}'?",
-                "Confirm Delete",
+                $"Are you sure you want to delete the backup '{selectedBackup.Name}'?\n\nThis action cannot be undone.",
+                "Delete Backup",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -156,205 +304,70 @@ namespace NodaStack
             {
                 try
                 {
-                    if (backupManager.DeleteBackup(selectedBackup.FilePath))
+                    var success = backupManager.DeleteBackup(selectedBackup.FilePath);
+                    
+                    if (success)
                     {
-                        StatusTextBlock.Text = "Backup deleted successfully";
-                        LoadBackups();
-                        ClearBackupDetails();
+                        StatusText.Text = "Backup deleted successfully";
+                        LoadBackupHistory();
+                        selectedBackup = null;
+                        NotificationManager.ShowNotification("Backup Deleted", "Backup deleted successfully", NotificationType.Success);
                     }
                     else
                     {
-                        StatusTextBlock.Text = "Failed to delete backup";
+                        StatusText.Text = "Failed to delete backup";
+                        NotificationManager.ShowNotification("Delete Failed", "Failed to delete backup", NotificationType.Error);
                     }
                 }
                 catch (Exception ex)
                 {
-                    logManager.Log($"Error deleting backup: {ex.Message}", LogLevel.Error, "Backup");
-                    StatusTextBlock.Text = "Error deleting backup";
+                    StatusText.Text = $"Error deleting backup: {ex.Message}";
+                    NotificationManager.ShowNotification("Delete Error", $"Error deleting backup: {ex.Message}", NotificationType.Error);
                 }
             }
         }
 
-        private void ImportBackupButton_Click(object sender, RoutedEventArgs e)
+        private void BackupHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "Backup Files (*.zip)|*.zip|All Files (*.*)|*.*",
-                Title = "Select Backup File to Import"
-            };
+            selectedBackup = BackupHistoryListView.SelectedItem as BackupInfo;
+            
+            ExportSelectedButton.IsEnabled = selectedBackup != null;
+            RestoreBackupButton.IsEnabled = selectedBackup != null;
+            DeleteBackupButton.IsEnabled = selectedBackup != null;
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    var backupDirectory = Path.Combine(Directory.GetCurrentDirectory(), "backups");
-                    var fileName = Path.GetFileName(openFileDialog.FileName);
-                    var targetPath = Path.Combine(backupDirectory, fileName);
-
-                    if (File.Exists(targetPath))
-                    {
-                        var result = MessageBox.Show(
-                            $"A backup with the name '{fileName}' already exists. Do you want to overwrite it?",
-                            "Backup Exists",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
-
-                        if (result == MessageBoxResult.No)
-                            return;
-                    }
-
-                    File.Copy(openFileDialog.FileName, targetPath, true);
-                    StatusTextBlock.Text = "Backup imported successfully";
-                    LoadBackups();
-                }
-                catch (Exception ex)
-                {
-                    logManager.Log($"Error importing backup: {ex.Message}", LogLevel.Error, "Backup");
-                    StatusTextBlock.Text = "Error importing backup";
-                }
-            }
+            UpdateBackupDetails();
         }
 
-        private void ExportBackupButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateBackupDetails()
         {
             if (selectedBackup == null)
+            {
+                BackupDetailsText.Text = "Select a backup to view details";
                 return;
-
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Backup Files (*.zip)|*.zip|All Files (*.*)|*.*",
-                Title = "Export Backup",
-                FileName = selectedBackup.Name + ".zip"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    File.Copy(selectedBackup.FilePath, saveFileDialog.FileName, true);
-                    StatusTextBlock.Text = "Backup exported successfully";
-                }
-                catch (Exception ex)
-                {
-                    logManager.Log($"Error exporting backup: {ex.Message}", LogLevel.Error, "Backup");
-                    StatusTextBlock.Text = "Error exporting backup";
-                }
             }
-        }
 
-        private void BackupDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            selectedBackup = BackupDataGrid.SelectedItem as BackupInfo;
+            var details = $"Name: {selectedBackup.Name}\n" +
+                         $"Type: {selectedBackup.Type}\n" +
+                         $"Created: {selectedBackup.CreatedAt:dd/MM/yyyy HH:mm:ss}\n" +
+                         $"Size: {FormatFileSize(selectedBackup.FileSize)}\n" +
+                         $"Path: {selectedBackup.FilePath}";
 
-            bool hasSelection = selectedBackup != null;
-            RestoreBackupButton.IsEnabled = hasSelection;
-            DeleteBackupButton.IsEnabled = hasSelection;
-            ExportBackupButton.IsEnabled = hasSelection;
-
-            if (hasSelection)
-            {
-                ShowBackupDetails(selectedBackup!);
-            }
-            else
-            {
-                ClearBackupDetails();
-            }
-        }
-
-        private void ShowBackupDetails(BackupInfo backup)
-        {
-            BackupDetailsPanel.Children.Clear();
-
-            var details = new[]
-            {
-                ("Name:", backup.Name),
-                ("Type:", backup.Type.ToString()),
-                ("Created:", backup.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")),
-                ("File Size:", FormatFileSize(backup.FileSize)),
-                ("Backup Size:", FormatFileSize(backup.Size)),
-                ("Path:", backup.FilePath)
-            };
-
-            foreach (var (label, value) in details)
-            {
-                var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
-
-                panel.Children.Add(new TextBlock
-                {
-                    Text = label,
-                    FontWeight = FontWeights.Bold,
-                    Foreground = System.Windows.Media.Brushes.White,
-                    Width = 80
-                });
-
-                panel.Children.Add(new TextBlock
-                {
-                    Text = value,
-                    Foreground = System.Windows.Media.Brushes.LightGray,
-                    TextWrapping = TextWrapping.Wrap
-                });
-
-                BackupDetailsPanel.Children.Add(panel);
-            }
-        }
-
-        private void ClearBackupDetails()
-        {
-            BackupDetailsPanel.Children.Clear();
-            BackupDetailsPanel.Children.Add(new TextBlock
-            {
-                Text = "No backup selected",
-                Foreground = System.Windows.Media.Brushes.Gray,
-                FontStyle = FontStyles.Italic
-            });
-        }
-
-        private void SetOperationInProgress(bool inProgress, string message = "")
-        {
-            CreateFullBackupButton.IsEnabled = !inProgress;
-            CreateConfigBackupButton.IsEnabled = !inProgress;
-            RestoreBackupButton.IsEnabled = !inProgress && selectedBackup != null;
-            DeleteBackupButton.IsEnabled = !inProgress && selectedBackup != null;
-            ImportBackupButton.IsEnabled = !inProgress;
-            ExportBackupButton.IsEnabled = !inProgress && selectedBackup != null;
-            RefreshButton.IsEnabled = !inProgress;
-
-            if (inProgress)
-            {
-                StatusTextBlock.Text = message;
-                ProgressBar.Visibility = Visibility.Visible;
-                ProgressBar.IsIndeterminate = true;
-            }
-            else
-            {
-                ProgressBar.Visibility = Visibility.Collapsed;
-                ProgressBar.IsIndeterminate = false;
-            }
+            BackupDetailsText.Text = details;
         }
 
         private string FormatFileSize(long bytes)
         {
-            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-            double size = bytes;
-            int suffixIndex = 0;
-
-            while (size >= 1024 && suffixIndex < suffixes.Length - 1)
+            string[] sizes = { "B", "KB", "MB", "GB" };
+            double len = bytes;
+            int order = 0;
+            
+            while (len >= 1024 && order < sizes.Length - 1)
             {
-                size /= 1024;
-                suffixIndex++;
+                order++;
+                len = len / 1024;
             }
 
-            return $"{size:0.##} {suffixes[suffixIndex]}";
-        }
-
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            LoadBackups();
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
+            return $"{len:0.##} {sizes[order]}";
         }
     }
 }

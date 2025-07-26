@@ -1,50 +1,96 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
+using NodaStack.Core.Models;
+using NodaStack.Converters;
 
 namespace NodaStack
 {
     public partial class MonitoringWindow : Window
     {
-        private ContainerMonitor? containerMonitor;
-        private readonly LogManager logManager;
-        private readonly List<ContainerInfo> containerInfos = new();
-        private readonly List<PortInfo> portInfos = new();
-        private bool isInitialized = false;
+        private readonly MonitoringService monitoringService;
+        private readonly DispatcherTimer updateTimer;
+        private readonly List<ServiceStatus> services = new();
+        private readonly List<PortStatus> ports = new();
+        private readonly List<MonitoringLogEntry> logs = new();
+        private SystemMetrics systemMetrics = new();
 
-        public MonitoringWindow(LogManager logManager)
+        public MonitoringWindow()
         {
             InitializeComponent();
-            this.logManager = logManager;
+            
+            // Initialize monitoring service
+            monitoringService = new MonitoringService();
+            monitoringService.ServiceUpdated += OnServiceUpdated;
+            monitoringService.PortUpdated += OnPortUpdated;
+            monitoringService.LogAdded += OnLogAdded;
+            monitoringService.SystemMetricsUpdated += OnSystemMetricsUpdated;
 
-            Loaded += MonitoringWindow_Loaded;
+            // Setup update timer
+            updateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            updateTimer.Tick += UpdateTimer_Tick;
+            updateTimer.Start();
+
+            // Setup event handlers
+            SetupEventHandlers();
+            
+            // Load initial data
+            LoadInitialData();
+            
+            // Setup filters
+            SetupFilters();
         }
 
-        private void MonitoringWindow_Loaded(object sender, RoutedEventArgs e)
+        private void SetupEventHandlers()
         {
-            try
-            {
-                isInitialized = true;
+            RefreshButton.Click += RefreshButton_Click;
+            ClearLogsButton.Click += ClearLogsButton_Click;
+            ScanPortsButton.Click += ScanPortsButton_Click;
+            LevelFilterComboBox.SelectionChanged += LevelFilterComboBox_SelectionChanged;
+            ServiceFilterComboBox.SelectionChanged += ServiceFilterComboBox_SelectionChanged;
+        }
 
-                containerMonitor = new ContainerMonitor(OnContainerUpdated);
-                logManager.OnLogAdded += OnLogAdded;
-
-                LoadInitialData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error initializing monitoring: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+        private void SetupFilters()
+        {
+            LevelFilterComboBox.SelectedIndex = 0;
+            ServiceFilterComboBox.SelectedIndex = 0;
         }
 
         private void LoadInitialData()
         {
             try
             {
-                RefreshLogs();
-                ScanPorts_Click(null, null);
+                // Load services
+                var serviceList = monitoringService.GetServices();
+                services.Clear();
+                services.AddRange(serviceList);
+                ServicesListView.ItemsSource = services;
+
+                // Load ports
+                var portList = monitoringService.GetPorts();
+                ports.Clear();
+                ports.AddRange(portList);
+                PortsListView.ItemsSource = ports;
+
+                // Load logs
+                var logList = monitoringService.GetLogs();
+                logs.Clear();
+                logs.AddRange(logList);
+                LogsListView.ItemsSource = logs;
+
+                // Load system metrics
+                systemMetrics = monitoringService.GetSystemMetrics();
+                UpdateSystemMetricsDisplay();
+
+                LastUpdatedText.Text = $"Last updated: {DateTime.Now:HH:mm:ss}";
             }
             catch (Exception ex)
             {
@@ -52,133 +98,134 @@ namespace NodaStack
             }
         }
 
-        private void OnContainerUpdated(string containerName, ContainerInfo info)
+        private void OnServiceUpdated(ServiceStatus service)
         {
-            if (!isInitialized) return;
+            Dispatcher.Invoke(() =>
+            {
+                // Log pour déboguer
+                var existingService = services.FirstOrDefault(s => s.Name == service.Name);
+                if (existingService != null)
+                {
+                    var index = services.IndexOf(existingService);
+                    services[index] = service;
+                    // Log pour déboguer
+                    System.Diagnostics.Debug.WriteLine($"Updated service {service.Name}: {service.Status} (CPU: {service.CpuUsage}%, Memory: {service.MemoryUsage} bytes)");
+                }
+                else
+                {
+                    services.Add(service);
+                    // Log pour déboguer
+                    System.Diagnostics.Debug.WriteLine($"Added service {service.Name}: {service.Status} (CPU: {service.CpuUsage}%, Memory: {service.MemoryUsage} bytes)");
+                }
 
+                ServicesListView.Items.Refresh();
+                LastUpdatedText.Text = $"Last updated: {DateTime.Now:HH:mm:ss}";
+            });
+        }
+
+        private void OnPortUpdated(PortStatus port)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var existingPort = ports.FirstOrDefault(p => p.Port == port.Port);
+                if (existingPort != null)
+                {
+                    var index = ports.IndexOf(existingPort);
+                    ports[index] = port;
+                }
+                else
+                {
+                    ports.Add(port);
+                }
+
+                PortsListView.Items.Refresh();
+            });
+        }
+
+        private void OnLogAdded(MonitoringLogEntry log)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                logs.Add(log);
+                
+                // Keep only last 1000 logs
+                if (logs.Count > 1000)
+                {
+                    logs.RemoveAt(0);
+                }
+
+                LogsListView.Items.Refresh();
+                ApplyLogFilters();
+            });
+        }
+
+        private void OnSystemMetricsUpdated(SystemMetrics metrics)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                systemMetrics = metrics;
+                UpdateSystemMetricsDisplay();
+            });
+        }
+
+        private void UpdateSystemMetricsDisplay()
+        {
             try
             {
-                Dispatcher.Invoke(() =>
-                {
-                    var existing = containerInfos.FirstOrDefault(c => c.Name == containerName);
-                    if (existing != null)
-                    {
-                        containerInfos.Remove(existing);
-                    }
+                // CPU Usage
+                CpuUsageText.Text = $"{systemMetrics.TotalCpuUsage:F1}%";
+                CpuProgressBar.Value = systemMetrics.TotalCpuUsage;
 
-                    containerInfos.Add(info);
-                    ContainersListView.ItemsSource = null;
-                    ContainersListView.ItemsSource = containerInfos;
-                });
+                // Memory Usage
+                var memoryMB = systemMetrics.TotalMemoryUsage / (1024 * 1024);
+                var totalMemoryMB = (systemMetrics.TotalMemoryUsage + systemMetrics.AvailableMemory) / (1024 * 1024);
+                var memoryPercentage = totalMemoryMB > 0 ? (memoryMB / totalMemoryMB) * 100 : 0;
+                
+                MemoryUsageText.Text = $"{memoryMB:F0} MB";
+                MemoryProgressBar.Value = memoryPercentage;
+
+                // Disk Usage
+                var usedDiskGB = (systemMetrics.TotalDiskSpace - systemMetrics.AvailableDiskSpace) / (1024 * 1024 * 1024);
+                var totalDiskGB = systemMetrics.TotalDiskSpace / (1024 * 1024 * 1024);
+                var diskPercentage = totalDiskGB > 0 ? (usedDiskGB / totalDiskGB) * 100 : 0;
+                
+                DiskUsageText.Text = $"{usedDiskGB:F1} GB";
+                DiskProgressBar.Value = diskPercentage;
+
+                // Connections
+                ConnectionsText.Text = systemMetrics.ActiveConnections.ToString();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error updating container: {ex.Message}");
+                // Handle any display errors silently
             }
         }
 
-        private void OnLogAdded(LogEntry entry)
+        private void UpdateTimer_Tick(object? sender, EventArgs e)
         {
-            if (!isInitialized) return;
+            LastUpdatedText.Text = $"Last updated: {DateTime.Now:HH:mm:ss}";
+        }
 
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
             try
             {
-                Dispatcher.Invoke(() =>
-                {
-                    RefreshLogs();
-                });
+                LoadInitialData();
+                NotificationManager.ShowNotification("Monitoring refreshed successfully!", "Success");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error adding log: {ex.Message}");
+                MessageBox.Show($"Error refreshing data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void RefreshLogs()
-        {
-            if (!isInitialized) return;
-
-            try
-            {
-                var filterLevel = GetSelectedLogLevel();
-                var filterService = GetSelectedService();
-
-                var logs = logManager.GetLogs(filterLevel, filterService);
-
-                if (LogsListView != null)
-                {
-                    LogsListView.ItemsSource = logs.OrderByDescending(l => l.Timestamp).Take(500).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                if (isInitialized)
-                {
-                    MessageBox.Show($"Error refreshing logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private LogLevel? GetSelectedLogLevel()
+        private void ClearLogsButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (LogLevelComboBox?.SelectedItem is ComboBoxItem selectedItem)
-                {
-                    var content = selectedItem.Content?.ToString();
-                    return content switch
-                    {
-                        "Error" => LogLevel.Error,
-                        "Warning" => LogLevel.Warning,
-                        "Info" => LogLevel.Info,
-                        "Debug" => LogLevel.Debug,
-                        _ => null
-                    };
-                }
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private string? GetSelectedService()
-        {
-            try
-            {
-                if (ServiceComboBox?.SelectedItem is ComboBoxItem selectedItem)
-                {
-                    var content = selectedItem.Content?.ToString();
-                    return content == "All" ? null : content;
-                }
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private void Refresh_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RefreshLogs();
-                ScanPorts_Click(null, null);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error refreshing: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ClearLogs_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                logManager.ClearLogs();
-                RefreshLogs();
+                logs.Clear();
+                LogsListView.Items.Refresh();
+                NotificationManager.ShowNotification("Logs cleared successfully!", "Success");
             }
             catch (Exception ex)
             {
@@ -186,101 +233,98 @@ namespace NodaStack
             }
         }
 
-        private void LogLevelFilter_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (!isInitialized) return;
-
-            try
-            {
-                RefreshLogs();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error filtering logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ServiceFilter_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (!isInitialized) return;
-
-            try
-            {
-                RefreshLogs();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error filtering logs: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async void ScanPorts_Click(object? sender, RoutedEventArgs? e)
+        private async void ScanPortsButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                var startPortText = StartPortTextBox?.Text ?? "8000";
-                var endPortText = EndPortTextBox?.Text ?? "9000";
+                ScanPortsButton.IsEnabled = false;
+                ScanPortsButton.Content = "🔍 Scanning...";
 
-                if (!int.TryParse(startPortText, out int startPort) ||
-                    !int.TryParse(endPortText, out int endPort))
+                if (int.TryParse(StartPortTextBox.Text, out int startPort) && 
+                    int.TryParse(EndPortTextBox.Text, out int endPort))
                 {
-                    MessageBox.Show("Invalid port range", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                var ports = Enumerable.Range(startPort, endPort - startPort + 1);
-                var portStatuses = await PortChecker.CheckPortsAsync(ports);
-                var servicePorts = PortChecker.GetServicePorts();
-
-                portInfos.Clear();
-
-                foreach (var kvp in portStatuses)
-                {
-                    var service = servicePorts.FirstOrDefault(sp => sp.Value == kvp.Key).Key ?? "";
-
-                    portInfos.Add(new PortInfo
+                    if (startPort > endPort)
                     {
-                        Port = kvp.Key,
-                        Status = kvp.Value ? "Available" : "In Use",
-                        Service = service
-                    });
-                }
+                        MessageBox.Show("Start port must be less than end port.", "Invalid Range", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
 
-                if (PortsListView != null)
+                    if (endPort - startPort > 1000)
+                    {
+                        var result = MessageBox.Show("You're about to scan a large port range. This may take a while. Continue?", 
+                            "Large Port Range", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (result != MessageBoxResult.Yes)
+                            return;
+                    }
+
+                    var results = await monitoringService.ScanPortsAsync(startPort, endPort);
+                    
+                    ports.Clear();
+                    ports.AddRange(results);
+                    PortsListView.Items.Refresh();
+
+                    var openPorts = results.Count(p => p.IsOpen);
+                    NotificationManager.ShowNotification($"Port scan completed! Found {openPorts} open ports.", "Success");
+                }
+                else
                 {
-                    PortsListView.ItemsSource = null;
-                    PortsListView.ItemsSource = portInfos;
+                    MessageBox.Show("Please enter valid port numbers.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error scanning ports: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                ScanPortsButton.IsEnabled = true;
+                ScanPortsButton.Content = "🔍 Scan Ports";
+            }
         }
 
-        protected override void OnClosed(EventArgs e)
+        private void LevelFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyLogFilters();
+        }
+
+        private void ServiceFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyLogFilters();
+        }
+
+        private void ApplyLogFilters()
         {
             try
             {
-                isInitialized = false;
-                containerMonitor?.Dispose();
-                if (logManager != null)
+                var filteredLogs = logs.AsEnumerable();
+
+                // Apply level filter
+                if (LevelFilterComboBox.SelectedItem is ComboBoxItem levelItem && levelItem.Content.ToString() != "All")
                 {
-                    logManager.OnLogAdded -= OnLogAdded;
+                    var selectedLevel = levelItem.Content.ToString();
+                    filteredLogs = filteredLogs.Where(log => string.Equals(log.Level, selectedLevel, StringComparison.OrdinalIgnoreCase));
                 }
+
+                // Apply service filter
+                if (ServiceFilterComboBox.SelectedItem is ComboBoxItem serviceItem && serviceItem.Content.ToString() != "All")
+                {
+                    var selectedService = serviceItem.Content.ToString();
+                    filteredLogs = filteredLogs.Where(log => string.Equals(log.Service, selectedService, StringComparison.OrdinalIgnoreCase));
+                }
+
+                LogsListView.ItemsSource = filteredLogs.ToList();
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore disposal errors
+                // Handle filter errors silently
             }
-            base.OnClosed(e);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            updateTimer?.Stop();
+            monitoringService?.Dispose();
+            base.OnClosing(e);
         }
     }
-
-    public class PortInfo
-    {
-        public int Port { get; set; }
-        public string Status { get; set; } = "";
-        public string Service { get; set; } = "";
-    }
-}
+} 

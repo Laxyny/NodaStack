@@ -36,29 +36,35 @@ namespace NodaStack
 
         private void LoadConfiguration()
         {
-            var config = configManager.Configuration;
+            var config = configManager.GetConfiguration();
+            originalConfig = JsonClone(config);
 
             ApachePortTextBox.Text = config.Ports["Apache"].ToString();
             PhpPortTextBox.Text = config.Ports["PHP"].ToString();
             MySqlPortTextBox.Text = config.Ports["MySQL"].ToString();
             PhpMyAdminPortTextBox.Text = config.Ports["phpMyAdmin"].ToString();
 
-            SetComboBoxValue(PhpVersionComboBox, config.Versions["PHP"]);
-            SetComboBoxValue(MySqlVersionComboBox, config.Versions["MySQL"]);
-            SetComboBoxValue(ApacheVersionComboBox, config.Versions["Apache"]);
+            // Set version texts instead of combo boxes
+            ApacheVersionText.Text = config.Versions["Apache"];
+            PhpVersionText.Text = config.Versions["PHP"];
+            MySqlVersionText.Text = config.Versions["MySQL"];
 
-            AutoStartServicesCheckBox.IsChecked = config.Settings.AutoStartServices;
-            ShowNotificationsCheckBox.IsChecked = config.Settings.ShowNotifications;
-            EnableLoggingCheckBox.IsChecked = config.Settings.EnableLogging;
+            AutoStartCheckBox.IsChecked = config.Settings.AutoStartServices;
+            NotificationsCheckBox.IsChecked = config.Settings.ShowNotifications;
+            DetailedLoggingCheckBox.IsChecked = config.Settings.EnableLogging;
             DarkModeCheckBox.IsChecked = config.Settings.DarkMode;
-            AutoRefreshProjectsCheckBox.IsChecked = config.Settings.AutoRefreshProjects;
-            EnableSslCheckBox.IsChecked = config.Settings.EnableSsl;
-            EnableAutoUpdatesCheckBox.IsChecked = config.Settings.AutoCheckUpdates;
-            AutoInstallUpdatesCheckBox.IsChecked = config.Settings.AutoInstallUpdates;
+            AutoRefreshCheckBox.IsChecked = config.Settings.AutoRefreshProjects;
+            SslSupportCheckBox.IsChecked = config.Settings.EnableSsl;
+            
             MySqlPasswordBox.Password = config.Settings.MySqlPassword;
-            MySqlDefaultDbTextBox.Text = config.Settings.MySqlDefaultDatabase;
-            ProjectsPathTextBox.Text = config.Settings.ProjectsPath;
-            NgrokTokenPasswordBox.Password = config.NgrokAuthToken;
+            MySqlDatabaseBox.Text = config.Settings.MySqlDefaultDatabase;
+            ProjectsDirectoryBox.Text = config.Settings.ProjectsPath;
+
+            // Set default status text
+            ApachePortStatus.Text = "Checking...";
+            PhpPortStatus.Text = "Checking...";
+            MySqlPortStatus.Text = "Checking...";
+            PhpMyAdminPortStatus.Text = "Checking...";
 
             _ = Task.Run(async () =>
             {
@@ -67,17 +73,7 @@ namespace NodaStack
             });
         }
 
-        private void SetComboBoxValue(ComboBox comboBox, string value)
-        {
-            foreach (ComboBoxItem item in comboBox.Items)
-            {
-                if (item.Content?.ToString() == value)
-                {
-                    comboBox.SelectedItem = item;
-                    break;
-                }
-            }
-        }
+
 
 
 
@@ -135,14 +131,14 @@ namespace NodaStack
                         if (isAvailable)
                         {
                             statusTextBlock.Text = "✓ Available";
-                            statusTextBlock.Foreground = Brushes.Green;
-                            portTextBox.Background = Brushes.White;
+                            statusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(76, 175, 80)); // Green
+                            portTextBox.Background = Application.Current.Resources["TextBoxBackgroundBrush"] as SolidColorBrush ?? Brushes.White;
                         }
                         else
                         {
                             statusTextBlock.Text = "✗ Port in use";
-                            statusTextBlock.Foreground = Brushes.Red;
-                            portTextBox.Background = Brushes.LightPink;
+                            statusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
+                            portTextBox.Background = new SolidColorBrush(Color.FromRgb(255, 235, 238)); // Light red
                         }
                     });
                 });
@@ -150,8 +146,8 @@ namespace NodaStack
             else
             {
                 statusTextBlock.Text = "✗ Invalid port";
-                statusTextBlock.Foreground = Brushes.Red;
-                portTextBox.Background = Brushes.LightPink;
+                statusTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
+                portTextBox.Background = new SolidColorBrush(Color.FromRgb(255, 235, 238)); // Light red
             }
         }
 
@@ -183,7 +179,7 @@ namespace NodaStack
 
         private void BrowseProjectsPath_Click(object sender, RoutedEventArgs e)
         {
-            var currentPath = ProjectsPathTextBox.Text;
+            var currentPath = ProjectsDirectoryBox.Text;
 
             if (System.IO.Directory.Exists(currentPath))
             {
@@ -240,31 +236,30 @@ namespace NodaStack
 
                 var newVersions = new Dictionary<string, string>
                 {
-                    { "PHP", GetComboBoxValue(PhpVersionComboBox) },
-                    { "MySQL", GetComboBoxValue(MySqlVersionComboBox) },
-                    { "Apache", GetComboBoxValue(ApacheVersionComboBox) }
+                    { "PHP", PhpVersionText.Text },
+                    { "MySQL", MySqlVersionText.Text },
+                    { "Apache", ApacheVersionText.Text }
                 };
                 configManager.UpdateVersions(newVersions);
 
                 var newSettings = new NodaStackSettings
                 {
-                    AutoStartServices = AutoStartServicesCheckBox.IsChecked ?? false,
-                    ShowNotifications = ShowNotificationsCheckBox.IsChecked ?? true,
-                    EnableLogging = EnableLoggingCheckBox.IsChecked ?? true,
+                    AutoStartServices = AutoStartCheckBox.IsChecked ?? false,
+                    ShowNotifications = NotificationsCheckBox.IsChecked ?? true,
+                    EnableLogging = DetailedLoggingCheckBox.IsChecked ?? true,
                     DarkMode = DarkModeCheckBox.IsChecked ?? false,
-                    AutoRefreshProjects = AutoRefreshProjectsCheckBox.IsChecked ?? true,
-                    EnableSsl = EnableSslCheckBox.IsChecked ?? false,
+                    AutoRefreshProjects = AutoRefreshCheckBox.IsChecked ?? true,
+                    EnableSsl = SslSupportCheckBox.IsChecked ?? false,
                     MySqlPassword = MySqlPasswordBox.Password,
-                    MySqlDefaultDatabase = MySqlDefaultDbTextBox.Text,
-                    ProjectsPath = ProjectsPathTextBox.Text,
+                    MySqlDefaultDatabase = MySqlDatabaseBox.Text,
+                    ProjectsPath = ProjectsDirectoryBox.Text,
                     DefaultBrowser = "default",
                     LogRetentionDays = 7,
-                    AutoCheckUpdates = EnableAutoUpdatesCheckBox.IsChecked ?? true,
-                    AutoInstallUpdates = AutoInstallUpdatesCheckBox.IsChecked ?? false,
+                    AutoCheckUpdates = true,
+                    AutoInstallUpdates = false,
                     Language = "en",
                 };
 
-                configManager.UpdateNgrokToken(NgrokTokenPasswordBox.Password);
                 configManager.UpdateSettings(newSettings);
 
                 MessageBox.Show("Configuration saved successfully!", "Configuration Saved", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -278,10 +273,7 @@ namespace NodaStack
             }
         }
 
-        private string GetComboBoxValue(ComboBox comboBox)
-        {
-            return ((ComboBoxItem?)comboBox.SelectedItem)?.Content?.ToString() ?? "8.2";
-        }
+
 
         private bool ValidatePorts()
         {
@@ -338,15 +330,14 @@ namespace NodaStack
                 {
                     LatestVersionText.Text = updateInfo.Version;
 
-                    if (updateInfo.IsUpdateAvailable)
-                    {
-                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
-                        DownloadUpdateButton.IsEnabled = true;
-                    }
-                    else
-                    {
-                        LatestVersionText.Foreground = new SolidColorBrush(Colors.Black);
-                    }
+                                    if (updateInfo.IsUpdateAvailable)
+                {
+                    LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
+                }
+                else
+                {
+                    LatestVersionText.Foreground = new SolidColorBrush(Colors.Black);
+                }
                 }
                 else
                 {
@@ -368,6 +359,32 @@ namespace NodaStack
             {
                 await mainWindow.DownloadAndInstallUpdate();
             }
+        }
+
+        // Méthodes pour les nouveaux événements Click
+        private void BrowseProjectsButton_Click(object sender, RoutedEventArgs e)
+        {
+            BrowseProjectsPath_Click(sender, e);
+        }
+
+        private void CheckUpdatesButton_Click(object sender, RoutedEventArgs e)
+        {
+            CheckForUpdates_Click(sender, e);
+        }
+
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            ResetAll_Click(sender, e);
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            Cancel_Click(sender, e);
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            Save_Click(sender, e);
         }
     }
 }

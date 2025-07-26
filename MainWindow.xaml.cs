@@ -226,7 +226,7 @@ namespace NodaStack
 
         private void OpenBackupWindow()
         {
-            var backupWindow = new BackupWindow(backupManager, logManager);
+            var backupWindow = new BackupWindow();
             backupWindow.Owner = this;
             backupWindow.ShowDialog();
         }
@@ -299,7 +299,7 @@ namespace NodaStack
         {
             try
             {
-                var monitoringWindow = new MonitoringWindow(logManager);
+                var monitoringWindow = new MonitoringWindow();
                 monitoringWindow.Owner = this;
                 monitoringWindow.Show();
                 Log("Monitoring window opened", LogLevel.Info);

@@ -39,16 +39,16 @@ namespace NodaStack
 
                 if (isDark)
                 {
-                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
                     app.Resources["ForegroundBrush"] = new SolidColorBrush(Colors.White);
                     app.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
                     app.Resources["ButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
                     app.Resources["BorderBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
-                    app.Resources["TextBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
-                    app.Resources["GroupBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(40, 40, 40));
-                    app.Resources["ListViewBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
-                    app.Resources["LogBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(16, 16, 16));
-                    app.Resources["StatusBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(24, 24, 24));
+                    app.Resources["TextBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(56, 56, 56));
+                    app.Resources["GroupBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(52, 52, 52));
+                    app.Resources["ListViewBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(56, 56, 56));
+                    app.Resources["LogBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(40, 40, 40));
+                    app.Resources["StatusBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(44, 44, 44));
                 }
                 else
                 {
