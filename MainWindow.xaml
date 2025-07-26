@@ -541,7 +541,7 @@
                                                  AcceptsReturn="True"
                                                  VerticalScrollBarVisibility="Auto"
                                                  Background="{DynamicResource LogBackgroundBrush}"
-                                                 Foreground="White"/>
+                                                 Foreground="{DynamicResource ForegroundBrush}"/>
                                 </ScrollViewer>
                         </GroupBox>
                 </Grid>
