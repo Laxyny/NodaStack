@@ -19,6 +19,7 @@ namespace NodaStack
         public BackupWindow(BackupManager backupManager, LogManager logManager)
         {
             InitializeComponent();
+            ThemeManager.ApplyTheme(ThemeManager.IsDarkTheme);
             this.backupManager = backupManager;
             this.logManager = logManager;
             this.backups = new List<BackupInfo>();

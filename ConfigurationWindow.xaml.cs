@@ -21,6 +21,7 @@ namespace NodaStack
         public ConfigurationWindow(ConfigurationManager configManager)
         {
             InitializeComponent();
+            ThemeManager.ApplyTheme(ThemeManager.IsDarkTheme);
             this.configManager = configManager;
             this.originalConfig = JsonClone(configManager.Configuration);
 
