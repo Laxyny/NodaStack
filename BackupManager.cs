@@ -375,6 +375,11 @@ namespace NodaStack
             }
         }
 
+        public string GetBackupDirectory()
+        {
+            return backupDirectory;
+        }
+
         private long CalculateDirectorySize(string path)
         {
             if (!Directory.Exists(path))

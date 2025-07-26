@@ -42,16 +42,15 @@ namespace NodaStack
                 Topmost = true,
                 ShowInTaskbar = false,
                 ResizeMode = ResizeMode.NoResize,
-                Width = 300,
-                Height = 100
+                Width = 350,
+                Height = 120
             };
 
             var border = new Border
             {
                 Background = GetNotificationBackground(type),
                 CornerRadius = new CornerRadius(8),
-                BorderBrush = GetNotificationBorder(type),
-                BorderThickness = new Thickness(1),
+                BorderThickness = new Thickness(0),
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Black,
@@ -120,7 +119,7 @@ namespace NodaStack
         private static void PositionToast(Window toast)
         {
             var workingArea = SystemParameters.WorkArea;
-            toast.Left = workingArea.Right - toast.Width - 20;
+            toast.Left = workingArea.Right - toast.Width - 30;
             toast.Top = workingArea.Bottom - toast.Height - 20;
         }
 
@@ -152,21 +151,10 @@ namespace NodaStack
         {
             return type switch
             {
-                NotificationType.Success => new SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80)),
-                NotificationType.Warning => new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 193, 7)),
-                NotificationType.Error => new SolidColorBrush(System.Windows.Media.Color.FromRgb(244, 67, 54)),
-                _ => new SolidColorBrush(System.Windows.Media.Color.FromRgb(33, 150, 243))
-            };
-        }
-
-        private static SolidColorBrush GetNotificationBorder(NotificationType type)
-        {
-            return type switch
-            {
-                NotificationType.Success => new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 142, 60)),
-                NotificationType.Warning => new SolidColorBrush(System.Windows.Media.Color.FromRgb(245, 124, 0)),
-                NotificationType.Error => new SolidColorBrush(System.Windows.Media.Color.FromRgb(211, 47, 47)),
-                _ => new SolidColorBrush(System.Windows.Media.Color.FromRgb(25, 118, 210))
+                NotificationType.Success => new SolidColorBrush(Color.FromRgb(76, 175, 80)),
+                NotificationType.Warning => new SolidColorBrush(Color.FromRgb(255, 193, 7)),
+                NotificationType.Error => new SolidColorBrush(Color.FromRgb(244, 67, 54)),
+                _ => new SolidColorBrush(Color.FromRgb(33, 150, 243))
             };
         }
 

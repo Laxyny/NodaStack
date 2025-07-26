@@ -2,11 +2,13 @@ using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
+using ModernWpf;
 
 namespace NodaStack
 {
     public static class ThemeManager
     {
+        private static readonly Color DefaultAccentColor = Color.FromRgb(0, 122, 204);
         public static event Action<bool>? ThemeChanged;
 
         private static bool _isDarkTheme = false;
@@ -32,19 +34,21 @@ namespace NodaStack
             try
             {
                 app.Resources.Clear();
+                ModernWpf.ThemeManager.Current.ApplicationTheme = isDark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+                ModernWpf.ThemeManager.Current.AccentColor = DefaultAccentColor;
 
                 if (isDark)
                 {
-                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
                     app.Resources["ForegroundBrush"] = new SolidColorBrush(Colors.White);
                     app.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
                     app.Resources["ButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
                     app.Resources["BorderBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
-                    app.Resources["TextBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
-                    app.Resources["GroupBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(40, 40, 40));
-                    app.Resources["ListViewBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
-                    app.Resources["LogBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(16, 16, 16));
-                    app.Resources["StatusBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(24, 24, 24));
+                    app.Resources["TextBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(56, 56, 56));
+                    app.Resources["GroupBoxBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(52, 52, 52));
+                    app.Resources["ListViewBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(56, 56, 56));
+                    app.Resources["LogBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(40, 40, 40));
+                    app.Resources["StatusBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(44, 44, 44));
                 }
                 else
                 {
@@ -64,6 +68,7 @@ namespace NodaStack
                 ApplyTextBoxStyle();
                 ApplyListViewStyle();
                 ApplyGroupBoxStyle();
+                ApplyTextBlockStyle();
             }
             catch (Exception ex)
             {
@@ -82,6 +87,7 @@ namespace NodaStack
             buttonStyle.Setters.Add(new Setter(Button.BorderBrushProperty, app.Resources["BorderBrush"]));
             buttonStyle.Setters.Add(new Setter(Button.PaddingProperty, new Thickness(5)));
             buttonStyle.Setters.Add(new Setter(Button.MarginProperty, new Thickness(2)));
+            buttonStyle.Setters.Add(new Setter(Control.FontSizeProperty, 12.0));
 
             var trigger = new Trigger { Property = Button.IsMouseOverProperty, Value = true };
             trigger.Setters.Add(new Setter(Button.BackgroundProperty, app.Resources["ButtonHoverBrush"]));
@@ -99,6 +105,7 @@ namespace NodaStack
             textBoxStyle.Setters.Add(new Setter(TextBox.BackgroundProperty, app.Resources["TextBoxBackgroundBrush"]));
             textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, app.Resources["ForegroundBrush"]));
             textBoxStyle.Setters.Add(new Setter(TextBox.BorderBrushProperty, app.Resources["BorderBrush"]));
+            textBoxStyle.Setters.Add(new Setter(Control.FontSizeProperty, 12.0));
 
             app.Resources[typeof(TextBox)] = textBoxStyle;
         }
@@ -127,6 +134,18 @@ namespace NodaStack
             groupBoxStyle.Setters.Add(new Setter(GroupBox.BorderBrushProperty, app.Resources["BorderBrush"]));
 
             app.Resources[typeof(GroupBox)] = groupBoxStyle;
+        }
+
+        private static void ApplyTextBlockStyle()
+        {
+            var app = Application.Current;
+            if (app == null) return;
+
+            var textBlockStyle = new Style(typeof(TextBlock));
+            textBlockStyle.Setters.Add(new Setter(TextBlock.ForegroundProperty, app.Resources["ForegroundBrush"]));
+            textBlockStyle.Setters.Add(new Setter(TextBlock.FontSizeProperty, 12.0));
+
+            app.Resources[typeof(TextBlock)] = textBlockStyle;
         }
 
         public static void Initialize(bool isDarkTheme)
