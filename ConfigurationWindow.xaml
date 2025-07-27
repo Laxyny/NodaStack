@@ -475,24 +475,24 @@
 
             <!-- Behavior Tab -->
             <TabItem Header="Behavior">
-                <Grid Margin="24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="24">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0"
-                               Text="Application behavior"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,24"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                        <TextBlock Grid.Row="0"
+                                   Text="Application behavior"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,24"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
 
-                    <StackPanel Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Width="400">
+                        <StackPanel Grid.Row="1"
+                                    HorizontalAlignment="Center"
+                                    Width="400">
                         <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                 BorderThickness="1"
@@ -541,6 +541,7 @@
                         </Border>
                     </StackPanel>
                 </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 

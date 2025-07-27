@@ -6,6 +6,9 @@ using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.IO;
+using WinForms = System.Windows.Forms;
+using WinFormsDrawing = System.Drawing;
+using static NodaStack.NotificationManager;
 
 namespace NodaStack
 {
@@ -21,6 +24,8 @@ namespace NodaStack
         private KeyboardShortcutManager shortcutManager;
         private StatusBarManager? statusBarManager;
         private BackupManager backupManager;
+        private WinForms.NotifyIcon? systemTrayIcon;
+        private bool isClosing = false;
 
         public MainWindow()
         {
@@ -67,6 +72,19 @@ namespace NodaStack
             }
 
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
+            
+            // Initialize system tray if enabled
+            if (configManager.Configuration.Settings.MinimizeToTray)
+            {
+                InitializeSystemTray();
+            }
+            
+            // Start minimized if configured
+            if (configManager.Configuration.Settings.StartMinimized)
+            {
+                WindowState = WindowState.Minimized;
+                ShowInTaskbar = false;
+            }
         }
 
         private async void CheckForUpdatesOnStartup()
@@ -129,12 +147,10 @@ namespace NodaStack
                 if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
                 {
                     Debug.WriteLine("MainWindow: Mise à jour disponible, affichage de la notification");
-                    NotificationManager.ShowNotification(
+                    NotificationManager.ShowToastNotification(
                         "Update Available",
                         $"NodaStack {updateInfo.Version} is available. Click to download.",
-                        NotificationType.Info,
-                        8000,
-                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl!) { UseShellExecute = true }); });
+                        NotificationType.Info);
 
                     Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
                 }
@@ -163,22 +179,19 @@ namespace NodaStack
 
                 if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
                 {
-                    NotificationManager.ShowNotification(
+                    NotificationManager.ShowToastNotification(
                         "Update Available",
                         $"NodaStack {updateInfo.Version} is available. Click to download.",
-                        NotificationType.Info,
-                        8000,
-                        () => { Process.Start(new ProcessStartInfo(updateInfo.DownloadUrl!) { UseShellExecute = true }); });
+                        NotificationType.Info);
 
                     Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
                 }
                 else
                 {
-                    NotificationManager.ShowNotification(
+                    NotificationManager.ShowToastNotification(
                         "No Updates Available",
                         "You are already using the latest version of NodaStack.",
-                        NotificationType.Success,
-                        5000);
+                        NotificationType.Success);
 
                     Log("No updates available or already running latest version", LogLevel.Info, "Updates");
                 }
@@ -188,11 +201,10 @@ namespace NodaStack
             catch (Exception ex)
             {
                 Log($"Error checking for updates: {ex.Message}", LogLevel.Error, "Updates");
-                NotificationManager.ShowNotification(
+                NotificationManager.ShowToastNotification(
                     "Update Check Failed",
                     $"Could not check for updates: {ex.Message}",
-                    NotificationType.Error,
-                    8000);
+                    NotificationType.Error);
                 statusBarManager?.UpdateStatus("Ready");
             }
         }
@@ -210,11 +222,10 @@ namespace NodaStack
                     return await installer.DownloadAndInstallUpdate(updateInfo.DownloadUrl);
                 }
 
-                NotificationManager.ShowNotification(
+                NotificationManager.ShowToastNotification(
                     "No Updates Available",
                     "You are already using the latest version of NodaStack.",
-                    NotificationType.Info,
-                    5000);
+                    NotificationType.Info);
                 return false;
             }
             catch (Exception ex)
@@ -307,7 +318,7 @@ namespace NodaStack
             catch (Exception ex)
             {
                 Log($"Error opening monitoring window: {ex.Message}", LogLevel.Error);
-                NotificationManager.ShowNotification("Error", $"Failed to open monitoring: {ex.Message}", NotificationType.Error);
+                                    NotificationManager.ShowToastNotification("Error", $"Failed to open monitoring: {ex.Message}", NotificationType.Error);
             }
         }
 
@@ -323,13 +334,13 @@ namespace NodaStack
                 {
                     ApplyConfiguration();
                     Log("Configuration updated", LogLevel.Info);
-                    NotificationManager.ShowNotification("Configuration", "Settings updated successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("Configuration", "Settings updated successfully", NotificationType.Success);
                 }
             }
             catch (Exception ex)
             {
                 Log($"Error opening configuration: {ex.Message}", LogLevel.Error);
-                NotificationManager.ShowNotification("Error", $"Failed to open configuration: {ex.Message}", NotificationType.Error);
+                                    NotificationManager.ShowToastNotification("Error", $"Failed to open configuration: {ex.Message}", NotificationType.Error);
             }
         }
 
@@ -372,7 +383,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log($"Apache container started on port {apachePort}.", LogLevel.Info, "Apache");
-                    NotificationManager.ShowNotification("Apache", "Apache started successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("Apache", "Apache started successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -387,7 +398,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log("Apache container stopped.", LogLevel.Info, "Apache");
-                    NotificationManager.ShowNotification("Apache", "Apache stopped successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("Apache", "Apache stopped successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -413,7 +424,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log($"PHP container started on port {phpPort}.", LogLevel.Info, "PHP");
-                    NotificationManager.ShowNotification("PHP", "PHP started successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("PHP", "PHP started successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -428,7 +439,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log("PHP container stopped.", LogLevel.Info, "PHP");
-                    NotificationManager.ShowNotification("PHP", "PHP stopped successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("PHP", "PHP stopped successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -463,7 +474,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log($"MySQL container started on port {mysqlPort}.", LogLevel.Info, "MySQL");
-                    NotificationManager.ShowNotification("MySQL", "MySQL started successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("MySQL", "MySQL started successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -486,7 +497,7 @@ namespace NodaStack
                         UpdateServiceIndicators();
                         UpdateServiceButtons();
                         Log("MySQL container stopped.", LogLevel.Info, "MySQL");
-                        NotificationManager.ShowNotification("MySQL", "MySQL stopped successfully", NotificationType.Success);
+                        NotificationManager.ShowToastNotification("MySQL", "MySQL stopped successfully", NotificationType.Success);
                         statusBarManager?.UpdateStatus("Ready");
                     });
                 });
@@ -503,7 +514,7 @@ namespace NodaStack
                 {
                     statusBarManager?.UpdateStatus("Starting phpMyAdmin...");
                     Log("MySQL must be running before starting phpMyAdmin.", LogLevel.Warning, "phpMyAdmin");
-                    NotificationManager.ShowNotification("Warning", "MySQL must be running before starting phpMyAdmin", NotificationType.Warning);
+                    NotificationManager.ShowToastNotification("Warning", "MySQL must be running before starting phpMyAdmin", NotificationType.Warning);
                     return;
                 }
 
@@ -520,7 +531,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log($"phpMyAdmin container started on port {phpmyadminPort}.", LogLevel.Info, "phpMyAdmin");
-                    NotificationManager.ShowNotification("phpMyAdmin", "phpMyAdmin started successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("phpMyAdmin", "phpMyAdmin started successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -535,7 +546,7 @@ namespace NodaStack
                     UpdateServiceButtons();
                     UpdateServicesCount();
                     Log("phpMyAdmin container stopped.", LogLevel.Info, "phpMyAdmin");
-                    NotificationManager.ShowNotification("phpMyAdmin", "phpMyAdmin stopped successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("phpMyAdmin", "phpMyAdmin stopped successfully", NotificationType.Success);
                     statusBarManager?.UpdateStatus("Ready");
                 });
             }
@@ -650,7 +661,7 @@ namespace NodaStack
                     string connectionString = $"Server=localhost;Port={mysqlPort};Database=nodastack;Uid=root;Pwd=;";
                     System.Windows.Clipboard.SetText(connectionString);
                     Log("MySQL connection string copied to clipboard!", LogLevel.Info, "MySQL");
-                    NotificationManager.ShowNotification("MySQL", "Connection string copied to clipboard", NotificationType.Info);
+                    NotificationManager.ShowToastNotification("MySQL", "Connection string copied to clipboard", NotificationType.Info);
                 }
                 catch (Exception ex)
                 {
@@ -920,7 +931,7 @@ namespace NodaStack
 
                 if (string.IsNullOrWhiteSpace(projectName) || projectName == "Project name...")
                 {
-                    NotificationManager.ShowNotification("Error", "Please enter a project name", NotificationType.Warning);
+                    NotificationManager.ShowToastNotification("Error", "Please enter a project name", NotificationType.Warning);
                     return;
                 }
 
@@ -930,18 +941,18 @@ namespace NodaStack
                     NewProjectTextBox.Text = "Project name...";
                     NewProjectTextBox.Foreground = Brushes.Gray;
                     RefreshProjectsList();
-                    NotificationManager.ShowNotification("Success", $"Project '{projectName}' created successfully", NotificationType.Success);
+                    NotificationManager.ShowToastNotification("Success", $"Project '{projectName}' created successfully", NotificationType.Success);
                 }
                 else
                 {
                     Log($"Failed to create project '{projectName}' (already exists or invalid name)", LogLevel.Error);
-                    NotificationManager.ShowNotification("Error", "Failed to create project. It may already exist or the name is invalid.", NotificationType.Error);
+                    NotificationManager.ShowToastNotification("Error", "Failed to create project. It may already exist or the name is invalid.", NotificationType.Error);
                 }
             }
             catch (Exception ex)
             {
                 Log($"Error creating project: {ex.Message}", LogLevel.Error);
-                NotificationManager.ShowNotification("Error", $"Error creating project: {ex.Message}", NotificationType.Error);
+                                    NotificationManager.ShowToastNotification("Error", $"Error creating project: {ex.Message}", NotificationType.Error);
             }
         }
 
@@ -982,19 +993,17 @@ namespace NodaStack
                         // Continue despite clipboard error
                     }
 
-                    NotificationManager.ShowNotification(
+                    NotificationManager.ShowToastNotification(
                         "Project shared",
                         $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copied to clipboard)" : "")}",
-                        NotificationType.Success,
-                        8000
-                    );
+                        NotificationType.Success);
                     Log($"Project '{project.Name}' shared at {url}", LogLevel.Info, "Share");
                     statusBarManager?.UpdateStatus("Ready");
                 }
                 catch (Exception ex)
                 {
                     Log($"Share error: {ex.Message}", LogLevel.Error, "Share");
-                    NotificationManager.ShowNotification("Share error", ex.Message, NotificationType.Error);
+                    NotificationManager.ShowToastNotification("Share error", ex.Message, NotificationType.Error);
                     statusBarManager?.UpdateStatus("Ready");
                 }
             }
@@ -1016,7 +1025,7 @@ namespace NodaStack
             catch (Exception ex)
             {
                 Log($"Error opening projects folder: {ex.Message}", LogLevel.Error);
-                NotificationManager.ShowNotification("Error", $"Failed to open projects folder: {ex.Message}", NotificationType.Error);
+                                    NotificationManager.ShowToastNotification("Error", $"Failed to open projects folder: {ex.Message}", NotificationType.Error);
             }
         }
 
@@ -1033,7 +1042,7 @@ namespace NodaStack
                 catch (Exception ex)
                 {
                     Log($"Error opening project: {ex.Message}", LogLevel.Error);
-                    NotificationManager.ShowNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
+                    NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
                 }
             }
         }
@@ -1053,12 +1062,12 @@ namespace NodaStack
                     catch (Exception ex)
                     {
                         Log($"Error opening project via Apache: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
+                        NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
                     }
                 }
                 else
                 {
-                    NotificationManager.ShowNotification("Warning", "Apache must be running to view projects", NotificationType.Warning);
+                    NotificationManager.ShowToastNotification("Warning", "Apache must be running to view projects", NotificationType.Warning);
                 }
             }
         }
@@ -1078,12 +1087,12 @@ namespace NodaStack
                     catch (Exception ex)
                     {
                         Log($"Error opening project via PHP: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
+                        NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
                     }
                 }
                 else
                 {
-                    NotificationManager.ShowNotification("Warning", "PHP server must be running to view projects", NotificationType.Warning);
+                    NotificationManager.ShowToastNotification("Warning", "PHP server must be running to view projects", NotificationType.Warning);
                 }
             }
         }
@@ -1103,27 +1112,107 @@ namespace NodaStack
                         {
                             Log($"Project '{project.Name}' deleted successfully", LogLevel.Info);
                             RefreshProjectsList();
-                            NotificationManager.ShowNotification("Success", $"Project '{project.Name}' deleted", NotificationType.Success);
+                            NotificationManager.ShowToastNotification("Success", $"Project '{project.Name}' deleted", NotificationType.Success);
                         }
                         else
                         {
                             Log($"Failed to delete project '{project.Name}'", LogLevel.Error);
-                            NotificationManager.ShowNotification("Error", "Failed to delete project", NotificationType.Error);
+                            NotificationManager.ShowToastNotification("Error", "Failed to delete project", NotificationType.Error);
                         }
                     }
                     catch (Exception ex)
                     {
                         Log($"Error deleting project: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowNotification("Error", $"Error deleting project: {ex.Message}", NotificationType.Error);
+                        NotificationManager.ShowToastNotification("Error", $"Error deleting project: {ex.Message}", NotificationType.Error);
                     }
                 }
             }
+        }
+
+        private void InitializeSystemTray()
+        {
+            try
+            {
+                systemTrayIcon = new WinForms.NotifyIcon();
+                systemTrayIcon.Icon = WinFormsDrawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                systemTrayIcon.Text = "NodaStack";
+                systemTrayIcon.Visible = true;
+
+                // Create context menu
+                var contextMenu = new WinForms.ContextMenuStrip();
+                contextMenu.Items.Add("Show NodaStack", null, (s, e) => ShowFromTray());
+                contextMenu.Items.Add("-"); // Separator
+                contextMenu.Items.Add("Exit", null, (s, e) => ExitApplication());
+
+                systemTrayIcon.ContextMenuStrip = contextMenu;
+                systemTrayIcon.DoubleClick += (s, e) => ShowFromTray();
+
+                Log("System tray initialized", LogLevel.Info, "System");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to initialize system tray: {ex.Message}", LogLevel.Error, "System");
+            }
+        }
+
+        private void ShowFromTray()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Show();
+                WindowState = WindowState.Normal;
+                ShowInTaskbar = true;
+                Activate();
+            });
+        }
+
+        private void ExitApplication()
+        {
+            isClosing = true;
+            systemTrayIcon?.Dispose();
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            
+            if (WindowState == WindowState.Minimized && configManager.Configuration.Settings.MinimizeToTray)
+            {
+                ShowInTaskbar = false;
+                if (configManager.Configuration.Settings.ShowTrayNotifications)
+                {
+                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application minimized to system tray", WinForms.ToolTipIcon.Info);
+                }
+            }
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!isClosing && configManager.Configuration.Settings.MinimizeToTray)
+            {
+                e.Cancel = true;
+                WindowState = WindowState.Minimized;
+                ShowInTaskbar = false;
+                
+                if (configManager.Configuration.Settings.ShowTrayNotifications)
+                {
+                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application running in background", WinForms.ToolTipIcon.Info);
+                }
+            }
+            else
+            {
+                systemTrayIcon?.Dispose();
+            }
+            
+            base.OnClosing(e);
         }
 
         protected override void OnClosed(EventArgs e)
         {
             shortcutManager?.ClearShortcuts();
             statusBarManager?.Dispose();
+            systemTrayIcon?.Dispose();
             base.OnClosed(e);
         }
     }

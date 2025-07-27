@@ -266,7 +266,6 @@ namespace NodaStack
                     AutoInstallUpdates = false,
                     Language = "en",
                     
-                    // Behavior Settings
                     MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false,
                     StartMinimized = StartMinimizedCheckBox.IsChecked ?? false,
                     ShowTrayNotifications = ShowTrayNotificationsCheckBox.IsChecked ?? true,
@@ -275,6 +274,9 @@ namespace NodaStack
                 };
 
                 configManager.UpdateSettings(newSettings);
+                
+                // Sauvegarder explicitement la configuration
+                configManager.SaveConfiguration();
 
                 MessageBox.Show("Configuration saved successfully!", "Configuration Saved", MessageBoxButton.OK, MessageBoxImage.Information);
 
