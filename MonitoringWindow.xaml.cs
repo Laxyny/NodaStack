@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using NodaStack.Core.Models;
 using NodaStack.Converters;
+using static NodaStack.NotificationManager;
 
 namespace NodaStack
 {
