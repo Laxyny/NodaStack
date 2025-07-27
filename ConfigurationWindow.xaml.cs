@@ -60,6 +60,13 @@ namespace NodaStack
             MySqlDatabaseBox.Text = config.Settings.MySqlDefaultDatabase;
             ProjectsDirectoryBox.Text = config.Settings.ProjectsPath;
 
+            // Load Behavior Settings
+            MinimizeToTrayCheckBox.IsChecked = config.Settings.MinimizeToTray;
+            StartMinimizedCheckBox.IsChecked = config.Settings.StartMinimized;
+            ShowTrayNotificationsCheckBox.IsChecked = config.Settings.ShowTrayNotifications;
+            AutoStartDockerCheckBox.IsChecked = config.Settings.AutoStartDocker;
+            KeepDockerRunningCheckBox.IsChecked = config.Settings.KeepDockerRunning;
+
             // Set default status text
             ApachePortStatus.Text = "Checking...";
             PhpPortStatus.Text = "Checking...";
@@ -71,9 +78,6 @@ namespace NodaStack
                 await Task.Delay(100);
                 Dispatcher.Invoke(() => CheckPorts_Click(null, null));
             });
-
-            // Load behavior settings
-            LoadBehaviorSettings();
         }
 
 
@@ -261,9 +265,19 @@ namespace NodaStack
                     AutoCheckUpdates = true,
                     AutoInstallUpdates = false,
                     Language = "en",
+                    
+                    // Behavior Settings - IMPORTANT: Sauvegarder ces paramètres
+                    MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false,
+                    StartMinimized = StartMinimizedCheckBox.IsChecked ?? false,
+                    ShowTrayNotifications = ShowTrayNotificationsCheckBox.IsChecked ?? true,
+                    AutoStartDocker = AutoStartDockerCheckBox.IsChecked ?? false,
+                    KeepDockerRunning = KeepDockerRunningCheckBox.IsChecked ?? true,
                 };
 
                 configManager.UpdateSettings(newSettings);
+                
+                // Sauvegarder explicitement la configuration
+                configManager.SaveConfiguration();
 
                 MessageBox.Show("Configuration saved successfully!", "Configuration Saved", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -394,27 +408,6 @@ namespace NodaStack
             Save_Click(sender, e);
         }
 
-        private void LoadBehaviorSettings()
-        {
-            // Load behavior settings from configuration
-            MinimizeToTrayCheckBox.IsChecked = configManager.Configuration.Settings.MinimizeToTray;
-            StartMinimizedCheckBox.IsChecked = configManager.Configuration.Settings.StartMinimized;
-            ShowTrayNotificationsCheckBox.IsChecked = configManager.Configuration.Settings.ShowTrayNotifications;
-            AutoStartDockerCheckBox.IsChecked = configManager.Configuration.Settings.AutoStartDocker;
-            KeepDockerRunningCheckBox.IsChecked = configManager.Configuration.Settings.KeepDockerRunning;
-        }
 
-        private void SaveBehaviorSettings()
-        {
-            // Save behavior settings to configuration
-            var currentSettings = configManager.GetConfiguration().Settings;
-            currentSettings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false;
-            currentSettings.StartMinimized = StartMinimizedCheckBox.IsChecked ?? false;
-            currentSettings.ShowTrayNotifications = ShowTrayNotificationsCheckBox.IsChecked ?? true;
-            currentSettings.AutoStartDocker = AutoStartDockerCheckBox.IsChecked ?? false;
-            currentSettings.KeepDockerRunning = KeepDockerRunningCheckBox.IsChecked ?? true;
-            
-            configManager.UpdateSettings(currentSettings);
-        }
     }
 }

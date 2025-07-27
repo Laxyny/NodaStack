@@ -6,6 +6,8 @@ using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.IO;
+using WinForms = System.Windows.Forms;
+using WinFormsDrawing = System.Drawing;
 
 namespace NodaStack
 {
@@ -21,6 +23,8 @@ namespace NodaStack
         private KeyboardShortcutManager shortcutManager;
         private StatusBarManager? statusBarManager;
         private BackupManager backupManager;
+        private WinForms.NotifyIcon? systemTrayIcon;
+        private bool isClosing = false;
 
         public MainWindow()
         {
@@ -67,6 +71,19 @@ namespace NodaStack
             }
 
             ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
+            
+            // Initialize system tray if enabled
+            if (configManager.Configuration.Settings.MinimizeToTray)
+            {
+                InitializeSystemTray();
+            }
+            
+            // Start minimized if configured
+            if (configManager.Configuration.Settings.StartMinimized)
+            {
+                WindowState = WindowState.Minimized;
+                ShowInTaskbar = false;
+            }
         }
 
         private async void CheckForUpdatesOnStartup()
@@ -1120,10 +1137,90 @@ namespace NodaStack
             }
         }
 
+        private void InitializeSystemTray()
+        {
+            try
+            {
+                systemTrayIcon = new WinForms.NotifyIcon();
+                systemTrayIcon.Icon = WinFormsDrawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                systemTrayIcon.Text = "NodaStack";
+                systemTrayIcon.Visible = true;
+
+                // Create context menu
+                var contextMenu = new WinForms.ContextMenuStrip();
+                contextMenu.Items.Add("Show NodaStack", null, (s, e) => ShowFromTray());
+                contextMenu.Items.Add("-"); // Separator
+                contextMenu.Items.Add("Exit", null, (s, e) => ExitApplication());
+
+                systemTrayIcon.ContextMenuStrip = contextMenu;
+                systemTrayIcon.DoubleClick += (s, e) => ShowFromTray();
+
+                Log("System tray initialized", LogLevel.Info, "System");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to initialize system tray: {ex.Message}", LogLevel.Error, "System");
+            }
+        }
+
+        private void ShowFromTray()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Show();
+                WindowState = WindowState.Normal;
+                ShowInTaskbar = true;
+                Activate();
+            });
+        }
+
+        private void ExitApplication()
+        {
+            isClosing = true;
+            systemTrayIcon?.Dispose();
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            
+            if (WindowState == WindowState.Minimized && configManager.Configuration.Settings.MinimizeToTray)
+            {
+                ShowInTaskbar = false;
+                if (configManager.Configuration.Settings.ShowTrayNotifications)
+                {
+                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application minimized to system tray", WinForms.ToolTipIcon.Info);
+                }
+            }
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!isClosing && configManager.Configuration.Settings.MinimizeToTray)
+            {
+                e.Cancel = true;
+                WindowState = WindowState.Minimized;
+                ShowInTaskbar = false;
+                
+                if (configManager.Configuration.Settings.ShowTrayNotifications)
+                {
+                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application running in background", WinForms.ToolTipIcon.Info);
+                }
+            }
+            else
+            {
+                systemTrayIcon?.Dispose();
+            }
+            
+            base.OnClosing(e);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             shortcutManager?.ClearShortcuts();
             statusBarManager?.Dispose();
+            systemTrayIcon?.Dispose();
             base.OnClosed(e);
         }
     }

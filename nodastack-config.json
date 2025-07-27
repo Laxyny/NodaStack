@@ -24,7 +24,12 @@
     "MySqlDefaultDatabase": "nodastack",
     "AutoCheckUpdates": true,
     "AutoInstallUpdates": false,
-    "Language": "en"
+    "Language": "en",
+    "MinimizeToTray": true,
+    "StartMinimized": false,
+    "ShowTrayNotifications": true,
+    "AutoStartDocker": false,
+    "KeepDockerRunning": true
   },
   "NgrokAuthToken": "",
   "ApachePort": 8080,
