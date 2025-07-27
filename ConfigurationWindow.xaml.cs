@@ -266,7 +266,6 @@ namespace NodaStack
                     AutoInstallUpdates = false,
                     Language = "en",
                     
-                    // Behavior Settings - IMPORTANT: Sauvegarder ces paramètres
                     MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false,
                     StartMinimized = StartMinimizedCheckBox.IsChecked ?? false,
                     ShowTrayNotifications = ShowTrayNotificationsCheckBox.IsChecked ?? true,
