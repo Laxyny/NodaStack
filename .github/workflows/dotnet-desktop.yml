@@ -150,13 +150,13 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Download Release Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: NodaStack-Release-Package
           path: ./release-assets/
 
       - name: Download Installer (if exists)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: NodaStack-Installer
           path: ./release-assets/
