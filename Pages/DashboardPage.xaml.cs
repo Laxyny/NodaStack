@@ -105,7 +105,7 @@ namespace NodaStack.Pages
             LoadProjects();
         }
 
-        private void RefreshProjects_Click(object sender, RoutedEventArgs e)
+        public void RefreshProjects_Click(object sender, RoutedEventArgs e)
         {
             LoadProjects();
         }

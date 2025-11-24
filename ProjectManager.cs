@@ -12,7 +12,25 @@ namespace NodaStack
 
         public ProjectManager()
         {
-            ProjectsPath = Path.Combine(Directory.GetCurrentDirectory(), "www");
+            // Initial path loaded from config (we'll need to inject config or read it)
+            // For now, default relative "www". 
+            // Better approach: Read config directly here or allow setting path
+            var configManager = new ConfigurationManager();
+            ProjectsPath = configManager.GetConfiguration().Settings.ProjectsPath;
+            
+            if (string.IsNullOrWhiteSpace(ProjectsPath) || ProjectsPath == "www")
+            {
+                ProjectsPath = Path.Combine(Directory.GetCurrentDirectory(), "www");
+            }
+            
+            EnsureProjectsDirectory();
+        }
+
+        public void UpdateProjectsPath(string newPath)
+        {
+            if (string.IsNullOrWhiteSpace(newPath)) return;
+            
+            ProjectsPath = newPath;
             EnsureProjectsDirectory();
         }
 

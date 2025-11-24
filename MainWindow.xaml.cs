@@ -446,6 +446,18 @@ namespace NodaStack
             backupWindow.ShowDialog();
         }
 
+        public void ReloadConfiguration()
+        {
+            configManager.LoadConfiguration();
+            var config = configManager.GetConfiguration();
+            
+            // Update Project Manager path
+            projectManager.UpdateProjectsPath(config.Settings.ProjectsPath);
+            
+            // Refresh Dashboard Project List
+            _dashboardPage.RefreshProjects_Click(null, null);
+        }
+
         public void CreateProject_Click(object sender, RoutedEventArgs e)
         {
             projectManager.CreateProject("NewProject_" + DateTime.Now.Ticks);

@@ -41,8 +41,24 @@ namespace NodaStack.Pages
 
         private void BrowsePath_Click(object sender, RoutedEventArgs e)
         {
-            // For now simple stub
-            MessageBox.Show("Browse folder dialog placeholder.");
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dialog.Description = "Select the directory where your web projects are stored.";
+                dialog.UseDescriptionForTitle = true;
+                dialog.ShowNewFolderButton = true;
+                
+                if (!string.IsNullOrWhiteSpace(ProjectsPathBox.Text))
+                {
+                    dialog.SelectedPath = ProjectsPathBox.Text;
+                }
+
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+                {
+                    ProjectsPathBox.Text = dialog.SelectedPath;
+                }
+            }
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -65,6 +81,12 @@ namespace NodaStack.Pages
                 
                 configManager.UpdateSettings(settings);
                 configManager.SaveConfiguration();
+
+                // Notify Main Window to reload config and apply changes immediately
+                if (Application.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.ReloadConfiguration();
+                }
 
                 StatusText.Text = "Settings saved successfully!";
                 _ = Task.Delay(3000).ContinueWith(_ => Dispatcher.Invoke(() => StatusText.Text = ""));
