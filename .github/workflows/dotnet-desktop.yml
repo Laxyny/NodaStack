@@ -30,12 +30,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install .NET Core
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
 
@@ -55,8 +55,6 @@ jobs:
         run: |
           "NODASTACK_BUILD_VERSION=${{ steps.set-version.outputs.version }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-
-
       - name: Restore dependencies
         run: dotnet restore $env:Solution_Name
 
@@ -70,7 +68,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: NodaStack-${{ matrix.configuration }}
           path: bin/${{ matrix.configuration }}/net9.0-windows/
@@ -110,14 +108,14 @@ jobs:
 
       - name: Upload release package
         if: matrix.configuration == 'Release'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: NodaStack-Release-Package
           path: NodaStack-Release.zip
 
       - name: Upload installer
         if: matrix.configuration == 'Release' && hashFiles('NodaStack-Setup.exe') != ''
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: NodaStack-Installer
           path: NodaStack-Setup.exe
@@ -130,7 +128,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -150,13 +148,13 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Download Release Package
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: NodaStack-Release-Package
           path: ./release-assets/
 
       - name: Download Installer (if exists)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: NodaStack-Installer
           path: ./release-assets/
