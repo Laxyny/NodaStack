@@ -1,0 +1,129 @@
+<Page x:Class="NodaStack.Pages.BackupPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:local="clr-namespace:NodaStack"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1200"
+      Title="Backups">
+
+    <Page.Resources>
+        <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
+    </Page.Resources>
+
+    <ScrollViewer Padding="24,0,24,24">
+        <StackPanel MaxWidth="1200" HorizontalAlignment="Left">
+            <TextBlock Text="Backups" Style="{StaticResource PageTitleStyle}"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="350"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Backup List -->
+                <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock Text="Archive History" Style="{StaticResource SectionTitleStyle}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                             <Button Content="Refresh" Click="Refresh_Click" Margin="0,0,8,0" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                             <Button Content="Import Backup" Click="Import_Click" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Style="{StaticResource ProCardStyle}" Padding="0">
+                        <DataGrid x:Name="BackupsGrid"
+                                  Height="500"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  BorderThickness="0"
+                                  Background="Transparent"
+                                  SelectionChanged="BackupsGrid_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Name" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="12,0">
+                                                <TextBlock Text="📦" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="120"/>
+                                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="150"/>
+                                <DataGridTextColumn Header="Size" Binding="{Binding FileSize, Converter={StaticResource BytesToStringConverter}}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right: Sidebar -->
+                <StackPanel Grid.Column="1">
+                    
+                    <!-- Create Card -->
+                    <Border Style="{StaticResource ProCardStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBlock Text="New Backup" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
+                            </StackPanel>
+                            
+                            <TextBlock Text="Name (Optional)" Style="{StaticResource SettingDescriptionStyle}" Margin="0,0,0,4"/>
+                            <TextBox x:Name="BackupNameBox" Margin="0,0,0,16" ui:ControlHelper.PlaceholderText="auto-generated if empty"/>
+                            
+                            <Button Content="Full System Backup" Click="CreateFullBackup_Click" Style="{StaticResource ProPrimaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                            <Button Content="Configuration Only" Click="CreateConfigBackup_Click" Style="{StaticResource ProSecondaryButtonStyle}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Selected Item Details Card -->
+                    <Border Style="{StaticResource ProCardStyle}" x:Name="DetailsCard" Opacity="0.5" IsEnabled="False">
+                        <StackPanel>
+                            <TextBlock Text="Selected Archive" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16"/>
+                            
+                            <!-- Metadata Grid -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Name:" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                <TextBlock x:Name="DetailName" Grid.Column="1" Text="-" FontWeight="SemiBold" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Date:" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                <TextBlock x:Name="DetailDate" Grid.Column="1" Text="-" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Size:" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                <TextBlock x:Name="DetailSize" Grid.Column="1" Text="-" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Margin="0,16"/>
+
+                            <!-- Actions -->
+                            <Button x:Name="RestoreButton" Content="Restore Archive" Style="{StaticResource ProSecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,8" Click="RestoreButton_Click"/>
+                            <Button x:Name="ExportButton" Content="Export to File..." Style="{StaticResource ProSecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,8" Click="ExportButton_Click"/>
+                            <Button x:Name="DeleteButton" Content="Delete" Style="{StaticResource ProDangerButtonStyle}" HorizontalAlignment="Stretch" Click="DeleteButton_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,177 @@
+<Page x:Class="NodaStack.Pages.DashboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1200"
+      Title="Dashboard">
+
+    <ScrollViewer Padding="24,0,24,24">
+        <StackPanel MaxWidth="1200" HorizontalAlignment="Left">
+            
+            <!-- Hero Section -->
+            <Grid Margin="0,0,0,32">
+                <StackPanel>
+                    <TextBlock Text="Dashboard" Style="{StaticResource PageTitleStyle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Overview of your local development stack" Style="{StaticResource SettingDescriptionStyle}" FontSize="14"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Services Section -->
+            <TextBlock Text="Services" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,16"/>
+            
+            <ItemsControl Margin="0,0,0,32">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                
+                <!-- Apache -->
+                <Border Style="{StaticResource ProCardStyle}" Margin="0,0,16,16" Height="100">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Icon/Status -->
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#10FF0000" Margin="0,0,16,0">
+                            <Ellipse x:Name="ApacheStatusDot" Width="12" Height="12" Fill="Red"/>
+                        </Border>
+                        
+                        <!-- Info -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Apache" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                            <TextBlock Text="Web Server • Port 8080" Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+                        
+                        <!-- Toggle -->
+                        <ui:ToggleSwitch x:Name="ApacheToggle" Grid.Column="2" Toggled="ApacheToggle_Click" Margin="16,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- PHP -->
+                <Border Style="{StaticResource ProCardStyle}" Margin="0,0,0,16" Height="100">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#10FF0000" Margin="0,0,16,0">
+                            <Ellipse x:Name="PhpStatusDot" Width="12" Height="12" Fill="Red"/>
+                        </Border>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="PHP" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                            <TextBlock Text="Scripting • Port 8000" Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+                        
+                        <ui:ToggleSwitch x:Name="PhpToggle" Grid.Column="2" Toggled="PhpToggle_Click" Margin="16,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- MySQL -->
+                <Border Style="{StaticResource ProCardStyle}" Margin="0,0,16,0" Height="100">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#10FF0000" Margin="0,0,16,0">
+                            <Ellipse x:Name="MysqlStatusDot" Width="12" Height="12" Fill="Red"/>
+                        </Border>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="MySQL" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                            <TextBlock Text="Database • Port 3306" Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+                        
+                        <ui:ToggleSwitch x:Name="MysqlToggle" Grid.Column="2" Toggled="MysqlToggle_Click" Margin="16,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- phpMyAdmin -->
+                <Border Style="{StaticResource ProCardStyle}" Margin="0" Height="100">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#10FF0000" Margin="0,0,16,0">
+                            <Ellipse x:Name="PmaStatusDot" Width="12" Height="12" Fill="Red"/>
+                        </Border>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="phpMyAdmin" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                            <TextBlock Text="Administration • Port 8081" Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+                        
+                        <ui:ToggleSwitch x:Name="PmaToggle" Grid.Column="2" Toggled="PmaToggle_Click" Margin="16,0,0,0"/>
+                    </Grid>
+                </Border>
+            </ItemsControl>
+
+            <!-- Projects Section -->
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Projects" Style="{StaticResource SectionTitleStyle}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Refresh" Click="RefreshProjects_Click" Style="{StaticResource ProSecondaryButtonStyle}" Margin="0,0,8,0"/>
+                    <Button Content="New Project" Click="NewProject_Click" Style="{StaticResource ProPrimaryButtonStyle}"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Style="{StaticResource ProCardStyle}" Padding="0">
+                <DataGrid x:Name="ProjectsGrid"
+                          Height="400"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          Background="Transparent"
+                          BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Name" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="16,0">
+                                        <Border Background="{DynamicResource SystemControlBackgroundListLowBrush}" CornerRadius="4" Padding="8" Margin="0,0,12,0">
+                                            <TextBlock Text="📂" FontSize="14"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Files" Binding="{Binding FileCount}" Width="100"/>
+                        <DataGridTextColumn Header="Modified" Binding="{Binding LastModified, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="180"/>
+                        <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,16,0">
+                                        <Button Content="Open" Padding="12,6" Margin="0,0,8,0" Click="OpenProject_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                                        <Button Content="Browse" Padding="12,6" Click="BrowseProject_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -44,10 +44,7 @@ namespace NodaStack
             MySqlPortTextBox.Text = config.Ports["MySQL"].ToString();
             PhpMyAdminPortTextBox.Text = config.Ports["phpMyAdmin"].ToString();
 
-            // Set version texts instead of combo boxes
-            ApacheVersionText.Text = config.Versions["Apache"];
-            PhpVersionText.Text = config.Versions["PHP"];
-            MySqlVersionText.Text = config.Versions["MySQL"];
+            // Version texts removed from UI - versions are managed in Docker files
 
             AutoStartCheckBox.IsChecked = config.Settings.AutoStartServices;
             NotificationsCheckBox.IsChecked = config.Settings.ShowNotifications;
@@ -241,13 +238,7 @@ namespace NodaStack
                 };
                 configManager.UpdatePorts(newPorts);
 
-                var newVersions = new Dictionary<string, string>
-                {
-                    { "PHP", PhpVersionText.Text },
-                    { "MySQL", MySqlVersionText.Text },
-                    { "Apache", ApacheVersionText.Text }
-                };
-                configManager.UpdateVersions(newVersions);
+                // Versions are managed in Docker files, not in UI
 
                 var newSettings = new NodaStackSettings
                 {

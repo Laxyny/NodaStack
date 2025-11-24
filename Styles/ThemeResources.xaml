@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Dynamic Theme Resources - Will be set by ThemeManager -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#F3F3F3"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#E1E1E1"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#000000"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#666666"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D4"/>
+    
+</ResourceDictionary>
+

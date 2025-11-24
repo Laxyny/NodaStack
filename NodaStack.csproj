@@ -16,6 +16,8 @@
     <AssemblyTitle>NodaStack</AssemblyTitle>
     <Authors>Nodasys</Authors>
     <ApplicationIcon>Assets\NodaStackLogo.ico</ApplicationIcon>
+    <!-- Suppress CA1416 warnings since this is a Windows-only application -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

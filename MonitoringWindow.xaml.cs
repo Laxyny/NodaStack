@@ -196,7 +196,7 @@ namespace NodaStack
                 // Connections
                 ConnectionsText.Text = systemMetrics.ActiveConnections.ToString();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Handle any display errors silently
             }
@@ -315,7 +315,7 @@ namespace NodaStack
 
                 LogsListView.ItemsSource = filteredLogs.ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Handle filter errors silently
             }

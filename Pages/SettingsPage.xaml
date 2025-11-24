@@ -1,0 +1,193 @@
+<Page x:Class="NodaStack.Pages.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      mc:Ignorable="d" 
+      d:DesignHeight="1000" d:DesignWidth="1200"
+      Title="Settings">
+
+    <ScrollViewer Padding="24,0,24,24">
+        <StackPanel MaxWidth="800" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}"/>
+
+            <!-- Services & Ports -->
+            <Border Style="{StaticResource ProCardStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Services Configuration" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
+                            <TextBlock Text="Manage ports and docker images for your stack." Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Rebuild Images Section -->
+                    <Border Background="{DynamicResource SystemControlBackgroundListLowBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Docker Images" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="BuildStatusText" Text="Rebuild all service images if they are missing or outdated." Style="{StaticResource SettingDescriptionStyle}" FontSize="12"/>
+                            </StackPanel>
+                            <Button x:Name="RebuildButton" Grid.Column="1" Content="Rebuild Images" Click="RebuildImages_Click" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                        </Grid>
+                    </Border>
+                    
+                    <ui:SimpleStackPanel Spacing="12">
+                        <!-- Apache -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Apache Port" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Web Server (HTTP)" Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:NumberBox x:Name="ApachePortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
+                        </Grid>
+                        <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5"/>
+
+                        <!-- PHP -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="PHP Port" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="PHP Development Server" Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:NumberBox x:Name="PhpPortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
+                        </Grid>
+                        <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5"/>
+
+                        <!-- MySQL -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="MySQL Port" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Database Server" Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:NumberBox x:Name="MysqlPortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
+                        </Grid>
+                    </ui:SimpleStackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- General Environment -->
+            <Border Style="{StaticResource ProCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Environment" Style="{StaticResource SectionTitleStyle}"/>
+                    
+                    <ui:SimpleStackPanel Spacing="16">
+                        <!-- Projects Path -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="Projects Directory" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Where your web projects are stored." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ProjectsPathBox" IsReadOnly="True"/>
+                            <Button Content="Browse..." Grid.Column="1" Margin="8,0,0,0" Click="BrowsePath_Click"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5"/>
+
+                        <!-- Toggles -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Auto-start Services" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Start containers when application launches." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:ToggleSwitch x:Name="AutoStartSwitch" Grid.Column="1"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Dark Mode" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Switch between Light and Dark themes." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:ToggleSwitch x:Name="DarkModeSwitch" Grid.Column="1" Toggled="DarkModeSwitch_Toggled"/>
+                        </Grid>
+                    </ui:SimpleStackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,32">
+                <Button Content="Save Settings" Style="{StaticResource ProPrimaryButtonStyle}" Width="150" Click="SaveSettings_Click"/>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"/>
+            </StackPanel>
+
+            <!-- About / Credits Section -->
+            <Border Style="{StaticResource ProCardStyle}" Margin="0,0,0,32">
+                <StackPanel>
+                    <TextBlock Text="About NodaStack" Style="{StaticResource SectionTitleStyle}"/>
+                    
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Icon -->
+                        <Image Source="/Assets/NodaStackLogo.ico" Width="64" Height="64" Margin="0,0,24,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="NodaStack" FontSize="20" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="AppVersionText" Text="Version 1.0.0" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="A modern, professional local development environment manager for Windows." TextWrapping="Wrap" Style="{StaticResource SettingDescriptionStyle}"/>
+                            
+                            <TextBlock Text="Credits" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                            <TextBlock Text="Created by Kevin GREGOIRE - Nodasys" Style="{StaticResource SettingDescriptionStyle}"/>
+                            <TextBlock Text="Powered by .NET 9, ModernWpf, and Docker." Style="{StaticResource SettingDescriptionStyle}" Margin="0,4,0,0"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <TextBlock>
+                                    <Hyperlink NavigateUri="https://github.com/Laxyny/NodaStack" RequestNavigate="Hyperlink_RequestNavigate">
+                                        GitHub Repository
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text=" • " Margin="8,0"/>
+                                <TextBlock>
+                                    <Hyperlink NavigateUri="https://nodasys.com" RequestNavigate="Hyperlink_RequestNavigate">
+                                        Website
+                                    </Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
