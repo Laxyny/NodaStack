@@ -40,26 +40,64 @@ namespace NodaStack.Pages
                 case "apache":
                     ApacheToggle.IsOn = isRunning;
                     ApacheStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
+                    ApacheToggle.IsEnabled = true; 
                     break;
                 case "php":
                     PhpToggle.IsOn = isRunning;
                     PhpStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
+                    PhpToggle.IsEnabled = true;
                     break;
                 case "mysql":
                     MysqlToggle.IsOn = isRunning;
                     MysqlStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
+                    MysqlToggle.IsEnabled = true;
                     break;
                 case "phpmyadmin":
                     PmaToggle.IsOn = isRunning;
                     PmaStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
+                    PmaToggle.IsEnabled = true;
                     break;
             }
+            
+            EnableAllToggles();
         }
 
-        private void ApacheToggle_Click(object sender, RoutedEventArgs e) => ServiceToggleRequested?.Invoke(this, "apache");
-        private void PhpToggle_Click(object sender, RoutedEventArgs e) => ServiceToggleRequested?.Invoke(this, "php");
-        private void MysqlToggle_Click(object sender, RoutedEventArgs e) => ServiceToggleRequested?.Invoke(this, "mysql");
-        private void PmaToggle_Click(object sender, RoutedEventArgs e) => ServiceToggleRequested?.Invoke(this, "phpmyadmin");
+        public void DisableAllToggles()
+        {
+            ApacheToggle.IsEnabled = false;
+            PhpToggle.IsEnabled = false;
+            MysqlToggle.IsEnabled = false;
+            PmaToggle.IsEnabled = false;
+        }
+
+        public void EnableAllToggles()
+        {
+            ApacheToggle.IsEnabled = true;
+            PhpToggle.IsEnabled = true;
+            MysqlToggle.IsEnabled = true;
+            PmaToggle.IsEnabled = true;
+        }
+
+        private void ApacheToggle_Click(object sender, RoutedEventArgs e) 
+        { 
+            DisableAllToggles();
+            ServiceToggleRequested?.Invoke(this, "apache"); 
+        }
+        private void PhpToggle_Click(object sender, RoutedEventArgs e) 
+        { 
+            DisableAllToggles();
+            ServiceToggleRequested?.Invoke(this, "php"); 
+        }
+        private void MysqlToggle_Click(object sender, RoutedEventArgs e) 
+        { 
+            DisableAllToggles();
+            ServiceToggleRequested?.Invoke(this, "mysql"); 
+        }
+        private void PmaToggle_Click(object sender, RoutedEventArgs e) 
+        { 
+            DisableAllToggles();
+            ServiceToggleRequested?.Invoke(this, "phpmyadmin"); 
+        }
 
         private void NewProject_Click(object sender, RoutedEventArgs e)
         {

@@ -24,8 +24,22 @@
                             <TextBlock Text="Services Configuration" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
                             <TextBlock Text="Manage ports and docker images for your stack." Style="{StaticResource SettingDescriptionStyle}"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="Rebuild Images" Click="RebuildImages_Click" ToolTip="Rebuild all Docker images"/>
                     </Grid>
+
+                    <!-- Rebuild Images Section -->
+                    <Border Background="{DynamicResource SystemControlBackgroundListLowBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Docker Images" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="BuildStatusText" Text="Rebuild all service images if they are missing or outdated." Style="{StaticResource SettingDescriptionStyle}" FontSize="12"/>
+                            </StackPanel>
+                            <Button x:Name="RebuildButton" Grid.Column="1" Content="Rebuild Images" Click="RebuildImages_Click" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                        </Grid>
+                    </Border>
                     
                     <ui:SimpleStackPanel Spacing="12">
                         <!-- Apache -->

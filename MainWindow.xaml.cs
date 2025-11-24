@@ -51,7 +51,6 @@ namespace NodaStack
 
         private void NavView_Loaded(object sender, RoutedEventArgs e)
         {
-            // Naviguer vers Dashboard par défaut
             NavView.SelectedItem = NavView.MenuItems[0];
         }
 
@@ -79,10 +78,6 @@ namespace NodaStack
             }
         }
 
-        // =================================================================================
-        // LOGIQUE SERVICES
-        // =================================================================================
-
         private async void DashboardPage_ServiceToggleRequested(object? sender, string service)
         {
             switch (service)
@@ -102,18 +97,47 @@ namespace NodaStack
             _dashboardPage.UpdateServiceStatus("phpmyadmin", phpmyadminIsRunning);
         }
 
+        private async Task StopContainer(string containerName)
+        {
+            await RunProcessAsync($"docker stop {containerName}");
+            
+            await RunProcessAsync($"docker rm -f {containerName}");
+        }
+
         private async Task ToggleApache()
-            {
-                var config = configManager.GetConfiguration();
+        {
+            var config = configManager.GetConfiguration();
             if (!apacheIsRunning)
             {
-                await RunProcessAsync($"docker run -d --rm -p {config.ApachePort}:80 -v \"{projectManager.ProjectsPath}:/var/www/html\" --name nodastack_apache nodastack_apache");
-                    apacheIsRunning = true;
+                var absoluteProjectsPath = Path.GetFullPath(projectManager.ProjectsPath);
+                
+                await StopContainer("nodastack_apache"); // Nettoyage préventif
+
+                bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.ApachePort}:80 -v \"{absoluteProjectsPath}:/var/www/html\" --name nodastack_apache nodastack_apache");
+                
+                if (success)
+                {
+                    await Task.Delay(1000);
+                    if (await IsContainerRunning("nodastack_apache"))
+                    {
+                        apacheIsRunning = true;
+                    }
+                    else
+                    {
+                        apacheIsRunning = false;
+                        string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_apache");
+                        MessageBox.Show($"Apache failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Failed to execute start command for Apache.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
-                await RunProcessAsync("docker stop nodastack_apache");
-                    apacheIsRunning = false;
+                await StopContainer("nodastack_apache");
+                apacheIsRunning = false;
             }
             UpdateDashboardState();
         }
@@ -123,13 +147,35 @@ namespace NodaStack
             var config = configManager.GetConfiguration();
             if (!phpIsRunning)
             {
-                await RunProcessAsync($"docker run -d --rm -p {config.PhpPort}:8000 -v \"{projectManager.ProjectsPath}:/var/www/html\" --name nodastack_php nodastack_php");
-                    phpIsRunning = true;
+                var absoluteProjectsPath = Path.GetFullPath(projectManager.ProjectsPath);
+                
+                await StopContainer("nodastack_php");
+
+                bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.PhpPort}:8000 -v \"{absoluteProjectsPath}:/var/www/html\" --name nodastack_php nodastack_php");
+                
+                if (success)
+                {
+                    await Task.Delay(1000);
+                    if (await IsContainerRunning("nodastack_php"))
+                    {
+                        phpIsRunning = true;
+                    }
+                    else
+                    {
+                        phpIsRunning = false;
+                        string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_php");
+                        MessageBox.Show($"PHP failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Failed to execute start command for PHP.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
-                await RunProcessAsync("docker stop nodastack_php");
-                    phpIsRunning = false;
+                await StopContainer("nodastack_php");
+                phpIsRunning = false;
             }
             UpdateDashboardState();
         }
@@ -139,13 +185,33 @@ namespace NodaStack
             var config = configManager.GetConfiguration();
             if (!mysqlIsRunning)
             {
-                await RunProcessAsync($"docker run -d --rm -p {config.MySqlPort}:3306 --name nodastack_mysql nodastack_mysql");
-                    mysqlIsRunning = true;
+                await StopContainer("nodastack_mysql");
+
+                bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.MySqlPort}:3306 -e MYSQL_ROOT_PASSWORD=root --name nodastack_mysql nodastack_mysql");
+                
+                if (success)
+                {
+                    await Task.Delay(2000); 
+                    if (await IsContainerRunning("nodastack_mysql"))
+                    {
+                        mysqlIsRunning = true;
+                    }
+                    else
+                    {
+                        mysqlIsRunning = false;
+                        string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_mysql");
+                        MessageBox.Show($"MySQL failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Failed to execute start command for MySQL.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
-                await RunProcessAsync("docker stop nodastack_mysql");
-                        mysqlIsRunning = false;
+                await StopContainer("nodastack_mysql");
+                mysqlIsRunning = false;
             }
             UpdateDashboardState();
         }
@@ -155,20 +221,40 @@ namespace NodaStack
             var config = configManager.GetConfiguration();
             if (!phpmyadminIsRunning)
             {
-                await RunProcessAsync($"docker run -d --rm -p {config.PhpMyAdminPort}:80 --name nodastack_phpmyadmin --link nodastack_mysql -e PMA_HOST=nodastack_mysql nodastack_phpmyadmin");
-                    phpmyadminIsRunning = true;
+                await StopContainer("nodastack_phpmyadmin");
+
+                bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.PhpMyAdminPort}:80 --name nodastack_phpmyadmin --link nodastack_mysql -e PMA_HOST=nodastack_mysql nodastack_phpmyadmin");
+                
+                if (success)
+                {
+                    await Task.Delay(1000);
+                    if (await IsContainerRunning("nodastack_phpmyadmin"))
+                    {
+                        phpmyadminIsRunning = true;
+                    }
+                    else
+                    {
+                        phpmyadminIsRunning = false;
+                        string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_phpmyadmin");
+                        MessageBox.Show($"phpMyAdmin failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Failed to execute start command for phpMyAdmin.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
-                await RunProcessAsync("docker stop nodastack_phpmyadmin");
-                    phpmyadminIsRunning = false;
+                await StopContainer("nodastack_phpmyadmin");
+                phpmyadminIsRunning = false;
             }
             UpdateDashboardState();
         }
 
-        private async Task RunProcessAsync(string command)
+        private async Task<bool> RunProcessAsync(string command)
         {
-            await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 try
                 {
@@ -181,24 +267,37 @@ namespace NodaStack
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
-                    var p = Process.Start(psi);
-                    p?.WaitForExit();
+
+                    using (var p = new Process())
+                    {
+                        p.StartInfo = psi;
+                        p.Start();
+                        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+                        var stderrTask = p.StandardError.ReadToEndAsync();
+
+                        await Task.WhenAll(stdoutTask, stderrTask);
+                        p.WaitForExit();
+
+                        if (p.ExitCode != 0)
+                        {
+                            string error = await stderrTask;
+                            Debug.WriteLine($"Command failed: {command}. Error: {error}");
+                            return false;
+                        }
+                        return true;
+                    }
                 }
-                catch (Exception ex) { Debug.WriteLine(ex.Message); }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    return false;
+                }
             });
         }
 
-        // =================================================================================
-        // DOCKER MANAGEMENT
-        // =================================================================================
-
-        public async Task BuildDockerImages()
+        public async Task BuildDockerImages(IProgress<string> progress = null)
         {
             // Determine root path (where Docker folder is)
-            // Assuming run from bin/Debug/net9.0-windows, we need to go up
-            // Or use projectManager.ProjectsPath parent? No, that's user data.
-            // Let's try to find "Docker" folder relative to AppDomain.CurrentDomain.BaseDirectory
-            
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string projectRoot = Path.GetFullPath(Path.Combine(appDir, "..", "..", "..", "..")); // Adjust based on build depth
             
@@ -214,25 +313,99 @@ namespace NodaStack
                 return;
             }
 
-            await RunProcessAsync($"docker build -t nodastack_apache \"{Path.Combine(projectRoot, "Docker", "apache")}\"");
-            await RunProcessAsync($"docker build -t nodastack_php \"{Path.Combine(projectRoot, "Docker", "php")}\"");
-            await RunProcessAsync($"docker build -t nodastack_mysql \"{Path.Combine(projectRoot, "Docker", "mysql")}\"");
-            await RunProcessAsync($"docker build -t nodastack_phpmyadmin \"{Path.Combine(projectRoot, "Docker", "phpmyadmin")}\"");
+            try
+            {
+                progress?.Report("Building Apache image...");
+                if (!await RunProcessAsync($"docker build -t nodastack_apache \"{Path.Combine(projectRoot, "Docker", "apache")}\""))
+                    throw new Exception("Failed to build Apache image");
+
+                progress?.Report("Building PHP image...");
+                if (!await RunProcessAsync($"docker build -t nodastack_php \"{Path.Combine(projectRoot, "Docker", "php")}\""))
+                    throw new Exception("Failed to build PHP image");
+
+                progress?.Report("Building MySQL image...");
+                if (!await RunProcessAsync($"docker build -t nodastack_mysql \"{Path.Combine(projectRoot, "Docker", "mysql")}\""))
+                    throw new Exception("Failed to build MySQL image");
+
+                progress?.Report("Building phpMyAdmin image...");
+                if (!await RunProcessAsync($"docker build -t nodastack_phpmyadmin \"{Path.Combine(projectRoot, "Docker", "phpmyadmin")}\""))
+                    throw new Exception("Failed to build phpMyAdmin image");
+                    
+                progress?.Report("All images built successfully!");
+            }
+            catch (Exception ex)
+            {
+                progress?.Report($"Error: {ex.Message}");
+                throw; // Re-throw to be caught by caller if needed
+            }
         }
 
         private async void CheckInitialContainerStatus()
         {
-            // Check if images exist, if not, maybe prompt? 
-            // For now, assume they exist or user will click Rebuild in Settings if things fail.
-            // Real check logic could go here.
+            try 
+            {
+                // Check Apache
+                if (await IsContainerRunning("nodastack_apache")) apacheIsRunning = true;
+                
+                // Check PHP
+                if (await IsContainerRunning("nodastack_php")) phpIsRunning = true;
+                
+                // Check MySQL
+                if (await IsContainerRunning("nodastack_mysql")) mysqlIsRunning = true;
+                
+                // Check PMA
+                if (await IsContainerRunning("nodastack_phpmyadmin")) phpmyadminIsRunning = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error checking container status: " + ex.Message);
+            }
             
             UpdateDashboardState();
-            await Task.CompletedTask;
         }
 
-        // =================================================================================
-        // UPDATES (Pour ConfigurationWindow)
-        // =================================================================================
+        private async Task<bool> IsContainerRunning(string containerName)
+        {
+            // Use 'docker ps' filtering by name to see if it's running
+            // output will be the container name if running, empty otherwise
+            string output = await GetProcessOutputAsync($"docker ps -q -f name={containerName}");
+            return !string.IsNullOrWhiteSpace(output);
+        }
+
+        private async Task<string> GetProcessOutputAsync(string command)
+        {
+            return await Task.Run(async () =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/C {command}",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true, // Redirect error too to avoid popping up
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    
+                    using (var p = new Process())
+                    {
+                        p.StartInfo = psi;
+                        p.Start();
+
+                        // Même correction ici pour éviter tout blocage
+                        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+                        var stderrTask = p.StandardError.ReadToEndAsync();
+
+                        await Task.WhenAll(stdoutTask, stderrTask);
+                        p.WaitForExit();
+
+                        return (await stdoutTask).Trim();
+                    }
+                }
+                catch { return ""; }
+            });
+        }
 
         public void CheckForUpdatesManually(object sender, RoutedEventArgs e)
         {
@@ -244,10 +417,6 @@ namespace NodaStack
             await Task.Delay(100);
             MessageBox.Show("Update install stub.", "Info");
         }
-
-        // =================================================================================
-        // ACTIONS
-        // =================================================================================
 
         private void OpenConfiguration()
         {

@@ -76,30 +76,33 @@ namespace NodaStack.Pages
 
         private async void RebuildImages_Click(object sender, RoutedEventArgs e)
         {
-            var btn = sender as Button;
-            if (btn == null) return;
-
-            btn.IsEnabled = false;
-            var originalContent = btn.Content;
-            btn.Content = "Building...";
+            RebuildButton.IsEnabled = false;
+            var progress = new Progress<string>(status => 
+            {
+                BuildStatusText.Text = status;
+                BuildStatusText.Foreground = System.Windows.Media.Brushes.Orange;
+            });
 
             try
             {
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
-                    await mainWindow.BuildDockerImages();
+                    await mainWindow.BuildDockerImages(progress);
+                    BuildStatusText.Text = "All images rebuilt successfully!";
+                    BuildStatusText.Foreground = (System.Windows.Media.Brush)Application.Current.FindResource("SuccessBrush");
                     MessageBox.Show("Docker images rebuilt successfully!", "Success");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error building images: {ex.Message}", "Error");
+                BuildStatusText.Text = "Build failed. Check Docker Desktop.";
+                BuildStatusText.Foreground = (System.Windows.Media.Brush)Application.Current.FindResource("ErrorBrush");
+                MessageBox.Show($"Error building images: {ex.Message}\nPlease ensure Docker Desktop is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                btn.Content = originalContent;
-                btn.IsEnabled = true;
+                RebuildButton.IsEnabled = true;
             }
         }
     }
