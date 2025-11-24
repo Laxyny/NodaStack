@@ -5,236 +5,237 @@
         xmlns:local="clr-namespace:NodaStack"
         Title="Backup &amp; Import/Export - NodaStack"
         Icon="Assets/NodaStackLogo.ico"
-        Height="550"
-        Width="900"
-        MinHeight="450"
-        MinWidth="700"
+        Height="600"
+        Width="1000"
+        MinHeight="550"
+        MinWidth="800"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{DynamicResource ApplicationPageBackgroundThemeBrush}"
+        Background="{DynamicResource BackgroundBrush}"
         ui:WindowHelper.UseModernWindowStyle="True">
     
     <Window.Resources>
         <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header Controls -->
-        <StackPanel Grid.Row="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,0,0,16">
-            <Button x:Name="RefreshButton"
-                    Width="80"
-                    Height="32"
-                    Content="Refresh"
-                    Margin="0,0,8,0"
-                    Click="RefreshButton_Click"
-                    Style="{StaticResource DefaultButtonStyle}"/>
-            <Button x:Name="CloseButton"
-                    Width="80"
-                    Height="32"
-                    Content="Close"
-                    Click="CloseButton_Click"
-                    Style="{StaticResource DefaultButtonStyle}"/>
-        </StackPanel>
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Style="{StaticResource ModernCardStyle}"
+                Margin="0,0,0,20"
+                Padding="24">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="💾 Backup &amp; Import/Export"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Create backups and restore your NodaStack configuration"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,6,0,0"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="RefreshButton"
+                            Style="{StaticResource ModernSecondaryButtonStyle}"
+                            Width="100"
+                            Height="40"
+                            Margin="0,0,8,0"
+                            Click="RefreshButton_Click">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="🔄" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Refresh" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="CloseButton"
+                            Style="{StaticResource ModernSecondaryButtonStyle}"
+                            Width="100"
+                            Height="40"
+                            Click="CloseButton_Click">
+                        <TextBlock Text="Close" FontWeight="SemiBold"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Main Content -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left Panel - Backup History -->
             <Border Grid.Column="0"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                    BorderThickness="1"
-                    Margin="0,0,10,0">
-                <Grid Margin="16">
+                    Style="{StaticResource ModernCardStyle}"
+                    Margin="0,0,12,0">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header -->
-                    <StackPanel Grid.Row="0"
-                                Margin="0,0,0,16">
-                        <TextBlock Text="Backup &amp; Import/Export"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                        <TextBlock Text="Create backups and restore your NodaStack configuration"
-                                   FontSize="13"
-                                   Margin="0,8,0,0"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    </StackPanel>
+                    <TextBlock Grid.Row="0"
+                               Text="Backup History"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Margin="0,0,0,16"/>
 
-                    <!-- Backup History List -->
-                    <ListView x:Name="BackupHistoryListView"
-                              Grid.Row="1"
-                              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                              BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                              BorderThickness="1"
-                              Margin="0,0,0,12"
-                              SelectionChanged="BackupHistoryListView_SelectionChanged"
-                              Style="{StaticResource DefaultListViewStyle}">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Name"
-                                                Width="200"
-                                                DisplayMemberBinding="{Binding Name}"/>
-                                <GridViewColumn Header="Type"
-                                                Width="100"
-                                                DisplayMemberBinding="{Binding Type}"/>
-                                <GridViewColumn Header="Created"
-                                                Width="120"
-                                                DisplayMemberBinding="{Binding CreatedAt, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"/>
-                                <GridViewColumn Header="Size"
-                                                Width="80"
-                                                DisplayMemberBinding="{Binding FileSize, Converter={StaticResource BytesToStringConverter}}"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Margin="0,0,0,12">
+                        <ListView x:Name="BackupHistoryListView"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  SelectionChanged="BackupHistoryListView_SelectionChanged"
+                                  Style="{StaticResource DefaultListViewStyle}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Name" Width="220" DisplayMemberBinding="{Binding Name}"/>
+                                    <GridViewColumn Header="Type" Width="110" DisplayMemberBinding="{Binding Type}"/>
+                                    <GridViewColumn Header="Created" Width="150" 
+                                                  DisplayMemberBinding="{Binding CreatedAt, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"/>
+                                    <GridViewColumn Header="Size" Width="100" 
+                                                  DisplayMemberBinding="{Binding FileSize, Converter={StaticResource BytesToStringConverter}}"/>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Border>
 
-                    <!-- Status -->
                     <TextBlock x:Name="StatusText"
                                Grid.Row="2"
                                Text="Loaded 0 backup(s)"
                                FontSize="12"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </Grid>
             </Border>
 
             <!-- Right Panel - Actions -->
             <ScrollViewer Grid.Column="1"
-                          VerticalScrollBarVisibility="Auto">
+                          VerticalScrollBarVisibility="Auto"
+                          Margin="12,0,0,0">
                 <StackPanel>
                     
                     <!-- Create Backup Section -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                            BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                            BorderThickness="1"
-                            Margin="0,0,0,12"
-                            Padding="16">
+                    <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,12">
                         <StackPanel>
                             <TextBlock Text="Create Backup"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,16"/>
                             
                             <TextBox x:Name="BackupNameTextBox"
-                                     Height="32"
+                                     Style="{StaticResource ModernTextBoxStyle}"
+                                     Height="40"
                                      FontSize="13"
-                                     Style="{StaticResource DefaultTextBoxStyle}"/>
+                                     Margin="0,0,0,8"/>
                             <TextBlock Text="Leave empty for auto-generated name"
                                        FontSize="11"
-                                       Margin="0,4,0,12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,0,0,16"/>
                             
                             <Button x:Name="CreateFullBackupButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Create Full Backup"
                                     Margin="0,0,0,8"
-                                    Click="CreateFullBackupButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="CreateFullBackupButton_Click"/>
                             <Button x:Name="CreateConfigBackupButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernSecondaryButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Create Config Backup"
-                                    Click="CreateConfigBackupButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="CreateConfigBackupButton_Click"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Import/Export Section -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                            BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                            BorderThickness="1"
-                            Margin="0,0,0,12"
-                            Padding="16">
+                    <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,12">
                         <StackPanel>
                             <TextBlock Text="Import/Export"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,16"/>
                             
                             <Button x:Name="ImportBackupButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Import Backup"
                                     Margin="0,0,0,8"
-                                    Click="ImportBackupButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="ImportBackupButton_Click"/>
                             <Button x:Name="ExportSelectedButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernSecondaryButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Export Selected"
                                     IsEnabled="False"
-                                    Click="ExportSelectedButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="ExportSelectedButton_Click"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Backup Details Section -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                            BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                            BorderThickness="1"
-                            Margin="0,0,0,12"
-                            Padding="16">
+                    <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,12">
                         <StackPanel>
                             <TextBlock Text="Backup Details"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,16"/>
                             
                             <TextBlock x:Name="BackupDetailsText"
                                        Text="Select a backup to view details"
                                        FontSize="12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                       TextWrapping="Wrap"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       LineHeight="20"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Actions Section -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                            BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                            BorderThickness="1"
-                            Padding="16">
+                    <Border Style="{StaticResource ModernCardStyle}">
                         <StackPanel>
                             <TextBlock Text="Actions"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,12"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,16"/>
                             
                             <Button x:Name="RestoreBackupButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Restore Backup"
                                     Margin="0,0,0,8"
                                     IsEnabled="False"
-                                    Click="RestoreBackupButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="RestoreBackupButton_Click"/>
                             <Button x:Name="DeleteBackupButton"
-                                    Width="140"
-                                    Height="32"
+                                    Style="{StaticResource ModernSecondaryButtonStyle}"
+                                    Width="160"
+                                    Height="40"
                                     Content="Delete Backup"
                                     IsEnabled="False"
-                                    Click="DeleteBackupButton_Click"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
+                                    Click="DeleteBackupButton_Click"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

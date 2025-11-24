@@ -1,0 +1,134 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.modernwpf.com/2019">
+    
+    <SolidColorBrush x:Key="AccentBrush" Color="#0067C0"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#187BCD"/>
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#0056A0"/>
+    
+    <SolidColorBrush x:Key="SuccessBrush" Color="#107C10"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#D83B01"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="#C50F1F"/>
+
+    <Style x:Key="ProCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeLowBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="20"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.05"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style x:Key="ProServiceCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeLowBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="20"/>
+        <Setter Property="Margin" Value="0,0,16,16"/>
+        <Setter Property="Width" Value="260"/>
+        <Setter Property="Height" Value="140"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.05"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,0,0,24"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+    </Style>
+
+    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+    </Style>
+
+    <Style x:Key="SubTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+    
+    <Style x:Key="SettingHeaderStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="SettingDescriptionStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Margin" Value="0,2,0,0"/>
+    </Style>
+
+    <Style x:Key="ProPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentPressedBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ProSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeLowBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ProDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ProSecondaryButtonStyle}">
+        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#19C50F1F"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#33C50F1F"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ProStatusDotStyle" TargetType="Ellipse">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Height" Value="8"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+    </Style>
+
+</ResourceDictionary>

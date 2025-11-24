@@ -4,572 +4,449 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         Title="NodaStack Configuration"
         Icon="Assets/NodaStackLogo.ico"
-        Height="600"
-        Width="900"
-        MinHeight="500"
-        MinWidth="700"
+        Height="700"
+        Width="1000"
+        MinHeight="600"
+        MinWidth="800"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{DynamicResource ApplicationPageBackgroundThemeBrush}"
+        Background="{DynamicResource BackgroundBrush}"
         ui:WindowHelper.UseModernWindowStyle="True">
 
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Style="{StaticResource ModernCardStyle}"
+                Margin="0,0,0,20"
+                Padding="24">
+            <StackPanel>
+                <TextBlock Text="⚙️ Settings"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="Configure your NodaStack environment"
+                           FontSize="13"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+        </Border>
+
         <!-- Configuration Content -->
-        <TabControl Grid.Row="0"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                    BorderThickness="1">
+        <TabControl Grid.Row="1"
+                    Background="Transparent"
+                    BorderThickness="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Padding" Value="16,12"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Margin" Value="4,0"/>
+                </Style>
+            </TabControl.Resources>
 
             <!-- Ports Tab -->
-            <TabItem Header="Ports">
-                <Grid Margin="24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               Text="Configure service ports"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,24"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-
-                    <StackPanel Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Width="500">
+            <TabItem Header="🔌 Ports">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Center">
+                        <TextBlock Text="Service Ports Configuration"
+                                   Style="{StaticResource SectionHeaderStyle}"
+                                   Margin="0,0,0,24"/>
+                        
                         <!-- Apache Port -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="180"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="Apache Port:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBox x:Name="ApachePortTextBox"
-                                     Grid.Column="1"
-                                     Height="32"
-                                     Margin="0,0,12,0"
-                                     FontSize="13"
-                                     Style="{StaticResource DefaultTextBoxStyle}"/>
-                            <TextBlock x:Name="ApachePortStatus"
-                                       Grid.Column="2"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                                       FontSize="13"/>
-                        </Grid>
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Apache Port"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock Text="HTTP server port (default: 8080)"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,0,0,12"/>
+                                    <TextBox x:Name="ApachePortTextBox"
+                                             Style="{StaticResource ModernTextBoxStyle}"
+                                             Height="40"
+                                             FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock x:Name="ApachePortStatus"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <!-- PHP Port -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="180"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="PHP Port:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBox x:Name="PhpPortTextBox"
-                                     Grid.Column="1"
-                                     Height="32"
-                                     Margin="0,0,12,0"
-                                     FontSize="13"
-                                     Style="{StaticResource DefaultTextBoxStyle}"/>
-                            <TextBlock x:Name="PhpPortStatus"
-                                       Grid.Column="2"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                                       FontSize="13"/>
-                        </Grid>
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="PHP Port"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock Text="PHP development server port (default: 8000)"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,0,0,12"/>
+                                    <TextBox x:Name="PhpPortTextBox"
+                                             Style="{StaticResource ModernTextBoxStyle}"
+                                             Height="40"
+                                             FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock x:Name="PhpPortStatus"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <!-- MySQL Port -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="180"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="MySQL Port:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBox x:Name="MySqlPortTextBox"
-                                     Grid.Column="1"
-                                     Height="32"
-                                     Margin="0,0,12,0"
-                                     FontSize="13"
-                                     Style="{StaticResource DefaultTextBoxStyle}"/>
-                            <TextBlock x:Name="MySqlPortStatus"
-                                       Grid.Column="2"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                                       FontSize="13"/>
-                        </Grid>
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="MySQL Port"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock Text="Database server port (default: 3306)"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,0,0,12"/>
+                                    <TextBox x:Name="MySqlPortTextBox"
+                                             Style="{StaticResource ModernTextBoxStyle}"
+                                             Height="40"
+                                             FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock x:Name="MySqlPortStatus"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <!-- phpMyAdmin Port -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="180"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="phpMyAdmin Port:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBox x:Name="PhpMyAdminPortTextBox"
-                                     Grid.Column="1"
-                                     Height="32"
-                                     Margin="0,0,12,0"
-                                     FontSize="13"
-                                     Style="{StaticResource DefaultTextBoxStyle}"/>
-                            <TextBlock x:Name="PhpMyAdminPortStatus"
-                                       Grid.Column="2"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                                       FontSize="13"/>
-                        </Grid>
+                        <Border Style="{StaticResource ModernCardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="phpMyAdmin Port"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock Text="Database management interface port (default: 8081)"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,0,0,12"/>
+                                    <TextBox x:Name="PhpMyAdminPortTextBox"
+                                             Style="{StaticResource ModernTextBoxStyle}"
+                                             Height="40"
+                                             FontSize="14"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock x:Name="PhpMyAdminPortStatus"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
-                </Grid>
-            </TabItem>
-
-            <!-- Versions Tab -->
-            <TabItem Header="Versions">
-                <Grid Margin="24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               Text="Service versions"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,24"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-
-                    <StackPanel Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Width="500">
-                        <!-- Apache Version -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="180"/>
-                                <ColumnDefinition Width="100"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="Apache Version:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBlock x:Name="ApacheVersionText"
-                                       Grid.Column="1"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <Button x:Name="UpdateApacheButton"
-                                    Grid.Column="2"
-                                    Width="90"
-                                    Height="32"
-                                    Content="Update"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
-                        </Grid>
-
-                        <!-- PHP Version -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="180"/>
-                                <ColumnDefinition Width="100"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="PHP Version:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBlock x:Name="PhpVersionText"
-                                       Grid.Column="1"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <Button x:Name="UpdatePhpButton"
-                                    Grid.Column="2"
-                                    Width="90"
-                                    Height="32"
-                                    Content="Update"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
-                        </Grid>
-
-                        <!-- MySQL Version -->
-                        <Grid Margin="0,0,0,20"
-                              HorizontalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="180"/>
-                                <ColumnDefinition Width="100"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0"
-                                       Text="MySQL Version:"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <TextBlock x:Name="MySqlVersionText"
-                                       Grid.Column="1"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                            <Button x:Name="UpdateMySqlButton"
-                                    Grid.Column="2"
-                                    Width="90"
-                                    Height="32"
-                                    Content="Update"
-                                    Style="{StaticResource DefaultButtonStyle}"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Settings Tab -->
-            <TabItem Header="Settings">
-                <Grid Margin="24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+            <TabItem Header="⚙️ General">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Center">
+                        <TextBlock Text="General Settings"
+                                   Style="{StaticResource SectionHeaderStyle}"
+                                   Margin="0,0,0,24"/>
+                        
+                        <!-- Application Settings -->
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Application"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,0,0,16"/>
+                                
+                                <CheckBox x:Name="AutoStartCheckBox"
+                                          Content="Auto-start services on application launch"
+                                          FontSize="13"
+                                          Margin="0,0,0,12"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <CheckBox x:Name="NotificationsCheckBox"
+                                          Content="Show system notifications"
+                                          FontSize="13"
+                                          Margin="0,0,0,12"
+                                          IsChecked="True"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <CheckBox x:Name="DetailedLoggingCheckBox"
+                                          Content="Enable detailed logging"
+                                          FontSize="13"
+                                          Margin="0,0,0,12"
+                                          IsChecked="True"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <CheckBox x:Name="DarkModeCheckBox"
+                                          Content="Dark mode"
+                                          FontSize="13"
+                                          Margin="0,0,0,12"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <CheckBox x:Name="AutoRefreshCheckBox"
+                                          Content="Auto-refresh project list"
+                                          FontSize="13"
+                                          Margin="0,0,0,12"
+                                          IsChecked="True"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <CheckBox x:Name="SslSupportCheckBox"
+                                          Content="Enable SSL/HTTPS support"
+                                          FontSize="13"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
 
-                    <TextBlock Grid.Row="0"
-                               Text="General settings"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,24"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-
-                    <ScrollViewer Grid.Row="1"
-                                  VerticalScrollBarVisibility="Auto">
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Top"
-                                    Width="500">
-                            
-                            <!-- Checkboxes Section -->
-                            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                                    BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                                    BorderThickness="1"
-                                    Margin="0,0,0,20"
-                                    Padding="20">
-                                <StackPanel>
-                                    <TextBlock Text="Application Settings"
-                                               FontSize="15"
+                        <!-- Database Settings -->
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Database"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,0,0,16"/>
+                                
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="MySQL Root Password:"
+                                               VerticalAlignment="Center"
                                                FontWeight="SemiBold"
-                                               Margin="0,0,0,16"
-                                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    
-                                    <CheckBox x:Name="AutoStartCheckBox"
-                                              Content="Auto-start services on application launch"
-                                              Margin="0,0,0,12"
-                                              FontSize="13"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    <CheckBox x:Name="NotificationsCheckBox"
-                                              Content="Show system notifications"
-                                              Margin="0,0,0,12"
-                                              FontSize="13"
-                                              IsChecked="True"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    <CheckBox x:Name="DetailedLoggingCheckBox"
-                                              Content="Enable detailed logging"
-                                              Margin="0,0,0,12"
-                                              FontSize="13"
-                                              IsChecked="True"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    <CheckBox x:Name="DarkModeCheckBox"
-                                              Content="Dark mode (experimental)"
-                                              Margin="0,0,0,12"
-                                              FontSize="13"
-                                              IsChecked="True"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    <CheckBox x:Name="AutoRefreshCheckBox"
-                                              Content="Auto-refresh project list"
-                                              Margin="0,0,0,12"
-                                              FontSize="13"
-                                              IsChecked="True"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    <CheckBox x:Name="SslSupportCheckBox"
-                                              Content="Enable SSL/HTTPS support"
-                                              Margin="0,0,0,0"
-                                              FontSize="13"
-                                              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Input Fields Section -->
-                            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                                    BorderBrush="{DynamicResource SystemControlForegroundChromeDisabledLowBrush}"
-                                    BorderThickness="1"
-                                    Padding="20">
-                                <StackPanel>
-                                    <TextBlock Text="Database Settings"
-                                               FontSize="15"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <PasswordBox x:Name="MySqlPasswordBox"
+                                                 Grid.Column="1"
+                                                 Height="40"
+                                                 FontSize="13"
+                                                 Style="{StaticResource DefaultPasswordBoxStyle}"/>
+                                </Grid>
+                                
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="MySQL Default Database:"
+                                               VerticalAlignment="Center"
                                                FontWeight="SemiBold"
-                                               Margin="0,0,0,16"
-                                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                    
-                                    <Grid Margin="0,0,0,16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="MySQL Root Password:"
-                                                   VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="13"
-                                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                        <PasswordBox x:Name="MySqlPasswordBox"
-                                                     Grid.Column="1"
-                                                     Height="32"
-                                                     FontSize="13"
-                                                     Style="{StaticResource DefaultPasswordBoxStyle}"/>
-                                    </Grid>
-                                    <Grid Margin="0,0,0,16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="MySQL Default Database:"
-                                                   VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="13"
-                                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                        <TextBox x:Name="MySqlDatabaseBox"
-                                                 Grid.Column="1"
-                                                 Height="32"
-                                                 Text="nodastack"
-                                                 FontSize="13"
-                                                 Style="{StaticResource DefaultTextBoxStyle}"/>
-                                    </Grid>
-                                    <Grid Margin="0,0,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="Projects Directory:"
-                                                   VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="13"
-                                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                                        <TextBox x:Name="ProjectsDirectoryBox"
-                                                 Grid.Column="1"
-                                                 Height="32"
-                                                 Text="www"
-                                                 FontSize="13"
-                                                 Margin="0,0,12,0"
-                                                 Style="{StaticResource DefaultTextBoxStyle}"/>
-                                        <Button x:Name="BrowseProjectsButton"
-                                                Grid.Column="2"
-                                                Width="90"
-                                                Height="32"
-                                                Content="Browse"
-                                                Click="BrowseProjectsButton_Click"
-                                                Style="{StaticResource DefaultButtonStyle}"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
-
-            <!-- Updates Tab -->
-            <TabItem Header="Updates">
-                <Grid Margin="24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0"
-                               Text="Application updates"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,24"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-
-                    <StackPanel Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Width="350">
-                        <TextBlock x:Name="CurrentVersionText"
-                                   Text="Current Version: 1.0.0"
-                                   FontSize="15"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,12"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-                        <TextBlock x:Name="LatestVersionText"
-                                   Text="Latest Version: Checking..."
-                                   FontSize="15"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,24"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                        <Button x:Name="CheckUpdatesButton"
-                                Width="160"
-                                Height="36"
-                                Content="Check for Updates"
-                                Click="CheckUpdatesButton_Click"
-                                Style="{StaticResource DefaultButtonStyle}"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,12"/>
-                        <Button x:Name="DownloadUpdateButton"
-                                Width="160"
-                                Height="36"
-                                Content="Download &amp; Install Update"
-                                Click="DownloadAndInstallUpdate_Click"
-                                Style="{StaticResource DefaultButtonStyle}"
-                                HorizontalAlignment="Center"
-                                Visibility="Collapsed"/>
+                                               FontSize="13"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBox x:Name="MySqlDatabaseBox"
+                                             Grid.Column="1"
+                                             Height="40"
+                                             Text="nodastack"
+                                             FontSize="13"
+                                             Style="{StaticResource ModernTextBoxStyle}"/>
+                                </Grid>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="Projects Directory:"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBox x:Name="ProjectsDirectoryBox"
+                                             Grid.Column="1"
+                                             Height="40"
+                                             Text="www"
+                                             FontSize="13"
+                                             Margin="0,0,8,0"
+                                             Style="{StaticResource ModernTextBoxStyle}"/>
+                                    <Button x:Name="BrowseProjectsButton"
+                                            Grid.Column="2"
+                                            Width="100"
+                                            Height="40"
+                                            Content="Browse"
+                                            Click="BrowseProjectsButton_Click"
+                                            Style="{StaticResource ModernButtonStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Grid>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Behavior Tab -->
-            <TabItem Header="Behavior">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid Margin="24">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0"
-                                   Text="Application behavior"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,24"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
-
-                        <StackPanel Grid.Row="1"
-                                    HorizontalAlignment="Center"
-                                    Width="400">
-                        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="20"
-                                Margin="0,0,0,16">
+            <TabItem Header="🎯 Behavior">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Center">
+                        <TextBlock Text="Application Behavior"
+                                   Style="{StaticResource SectionHeaderStyle}"
+                                   Margin="0,0,0,24"/>
+                        
+                        <!-- System Tray -->
+                        <Border Style="{StaticResource ModernCardStyle}" Margin="0,0,0,16">
                             <StackPanel>
                                 <TextBlock Text="System Tray"
                                            FontSize="16"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,12"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,0,0,16"/>
                                 <CheckBox x:Name="MinimizeToTrayCheckBox"
                                          Content="Minimize to system tray when closing"
                                          FontSize="13"
-                                         Margin="0,0,0,8"/>
+                                         Margin="0,0,0,12"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <CheckBox x:Name="StartMinimizedCheckBox"
                                          Content="Start minimized to system tray"
                                          FontSize="13"
-                                         Margin="0,0,0,8"/>
+                                         Margin="0,0,0,12"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <CheckBox x:Name="ShowTrayNotificationsCheckBox"
                                          Content="Show notifications in system tray"
-                                         FontSize="13"/>
+                                         FontSize="13"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="20">
+                        <!-- Docker Integration -->
+                        <Border Style="{StaticResource ModernCardStyle}">
                             <StackPanel>
                                 <TextBlock Text="Docker Integration"
                                            FontSize="16"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,12"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,0,0,16"/>
                                 <CheckBox x:Name="AutoStartDockerCheckBox"
                                          Content="Auto-start Docker containers on launch"
                                          FontSize="13"
-                                         Margin="0,0,0,8"/>
+                                         Margin="0,0,0,12"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <CheckBox x:Name="KeepDockerRunningCheckBox"
                                          Content="Keep Docker running when minimizing"
-                                         FontSize="13"/>
+                                         FontSize="13"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Updates Tab -->
+            <TabItem Header="🔄 Updates">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel MaxWidth="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Application Updates"
+                                   Style="{StaticResource SectionHeaderStyle}"
+                                   Margin="0,0,0,24"/>
+                        
+                        <Border Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock x:Name="CurrentVersionText"
+                                           Text="Current Version: 1.0.0"
+                                           FontSize="15"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,12"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock x:Name="LatestVersionText"
+                                           Text="Latest Version: Checking..."
+                                           FontSize="15"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,24"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <Button x:Name="CheckUpdatesButton"
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Width="180"
+                                        Height="40"
+                                        Content="Check for Updates"
+                                        Click="CheckForUpdates_Click"
+                                        HorizontalAlignment="Center"
+                                        Margin="0,0,0,12"/>
+                                <Button x:Name="DownloadUpdateButton"
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Width="180"
+                                        Height="40"
+                                        Content="Download &amp; Install Update"
+                                        Click="DownloadAndInstallUpdate_Click"
+                                        HorizontalAlignment="Center"
+                                        Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
         </TabControl>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="1"
+        <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,20,0,0">
             <Button x:Name="ResetButton"
-                    Width="100"
-                    Height="32"
+                    Style="{StaticResource ModernSecondaryButtonStyle}"
+                    Width="120"
+                    Height="40"
                     Content="Reset All"
                     Margin="0,0,8,0"
-                    Click="ResetButton_Click"
-                    Style="{StaticResource DefaultButtonStyle}"/>
+                    Click="ResetButton_Click"/>
             <Button x:Name="CancelButton"
-                    Width="100"
-                    Height="32"
+                    Style="{StaticResource ModernSecondaryButtonStyle}"
+                    Width="120"
+                    Height="40"
                     Content="Cancel"
                     Margin="0,0,8,0"
-                    Click="CancelButton_Click"
-                    Style="{StaticResource DefaultButtonStyle}"/>
+                    Click="CancelButton_Click"/>
             <Button x:Name="SaveButton"
-                    Width="100"
-                    Height="32"
+                    Style="{StaticResource ModernButtonStyle}"
+                    Width="120"
+                    Height="40"
                     Content="Save"
-                    Click="SaveButton_Click"
-                    Style="{StaticResource DefaultButtonStyle}"/>
+                    Click="SaveButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

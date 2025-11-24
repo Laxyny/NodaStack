@@ -1,738 +1,169 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.IO;
-using WinForms = System.Windows.Forms;
-using WinFormsDrawing = System.Drawing;
-using static NodaStack.NotificationManager;
+using ModernWpf.Controls;
+using NodaStack.Pages;
 
 namespace NodaStack
 {
     public partial class MainWindow : Window
     {
+        // Services
+        private ProjectManager projectManager;
+        private ConfigurationManager configManager;
+        private LogManager logManager;
+        
+        // Pages
+        private DashboardPage _dashboardPage;
+        private MonitoringPage _monitoringPage;
+        private BackupPage _backupPage;
+        private SettingsPage _settingsPage;
+        
+        // État des services (Centralisé ici pour l'instant)
         private bool apacheIsRunning = false;
         private bool phpIsRunning = false;
         private bool mysqlIsRunning = false;
         private bool phpmyadminIsRunning = false;
-        private ProjectManager projectManager;
-        private ConfigurationManager configManager;
-        private LogManager logManager;
-        private KeyboardShortcutManager shortcutManager;
-        private StatusBarManager? statusBarManager;
-        private BackupManager backupManager;
-        private WinForms.NotifyIcon? systemTrayIcon;
-        private bool isClosing = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            // Init Managers
             ThemeManager.Initialize(false);
-
             configManager = new ConfigurationManager();
             projectManager = new ProjectManager();
             logManager = new LogManager();
-            shortcutManager = new KeyboardShortcutManager(this);
-            backupManager = new BackupManager(configManager, logManager);
 
-            if (MainStatusBar != null)
-            {
-                statusBarManager = new StatusBarManager(MainStatusBar);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("MainStatusBar not found in XAML!");
-            }
+            // Init Pages
+            _dashboardPage = new DashboardPage();
+            _dashboardPage.ServiceToggleRequested += DashboardPage_ServiceToggleRequested;
+            _monitoringPage = new MonitoringPage();
+            _backupPage = new BackupPage();
+            _settingsPage = new SettingsPage();
 
-            logManager.OnLogAdded += (entry) =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    LogBox.AppendText($"[{entry.Timestamp:HH:mm:ss}] {entry.Message}{Environment.NewLine}");
-                    LogBox.ScrollToEnd();
-                });
-            };
-
-            SetupKeyboardShortcuts();
-            ApplyConfiguration();
+            // Initial Check
             CheckInitialContainerStatus();
-            RefreshProjectsList();
-
-            if (configManager.Configuration.Settings.AutoCheckUpdates)
-            {
-                CheckForUpdatesOnStartup();
-            }
-            else
-            {
-                Log("Auto-update check disabled in settings", LogLevel.Info, "Updates");
-            }
-
-            ProjectsListView.SelectionChanged += ProjectsListView_SelectionChanged;
-            
-            // Initialize system tray if enabled
-            if (configManager.Configuration.Settings.MinimizeToTray)
-            {
-                InitializeSystemTray();
-            }
-            
-            // Start minimized if configured
-            if (configManager.Configuration.Settings.StartMinimized)
-            {
-                WindowState = WindowState.Minimized;
-                ShowInTaskbar = false;
-            }
         }
 
-        private async void CheckForUpdatesOnStartup()
+        private void NavView_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!configManager.Configuration.Settings.AutoCheckUpdates)
-            {
-                return;
-            }
-
-            try
-            {
-                Debug.WriteLine("CheckForUpdatesOnStartup: Starting");
-                await Task.Delay(2000);
-
-                statusBarManager?.UpdateStatus("⟳ Checking for updates...");
-                Debug.WriteLine("CheckForUpdatesOnStartup: Before calling CheckForUpdatesAsync");
-
-                try
-                {
-                    var updateChecker = new UpdateChecker();
-                    var updateInfo = await updateChecker.CheckForUpdatesAsync();
-                    Debug.WriteLine("CheckForUpdatesOnStartup: CheckForUpdatesAsync completed successfully");
-
-                    if (updateInfo != null && updateInfo.IsUpdateAvailable && configManager.Configuration.Settings.AutoInstallUpdates)
-                    {
-                        Log("Auto-installing update...", LogLevel.Info, "Updates");
-                        await DownloadAndInstallUpdate();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"CheckForUpdatesOnStartup: Error in CheckForUpdatesAsync: {ex}");
-                }
-
-                statusBarManager?.UpdateStatus("Ready");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"CheckForUpdatesOnStartup: General exception: {ex}");
-                Log($"Error during update check: {ex.Message}", LogLevel.Error, "Updates");
-                statusBarManager?.UpdateStatus("Ready");
-            }
+            // Naviguer vers Dashboard par défaut
+            NavView.SelectedItem = NavView.MenuItems[0];
         }
 
-        private async Task CheckForUpdatesAsync()
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            try
+            if (args.IsSettingsSelected)
             {
-                var updateChecker = new UpdateChecker();
-                Debug.WriteLine("MainWindow: Avant appel à CheckForUpdatesAsync()");
-                var updateInfo = await updateChecker.CheckForUpdatesAsync();
-                Debug.WriteLine("MainWindow: Après appel à CheckForUpdatesAsync()");
-                Debug.WriteLine($"MainWindow: updateInfo est null? {updateInfo == null}");
-
-                if (updateInfo != null)
+                ContentFrame.Navigate(_settingsPage);
+            }
+            else if (args.SelectedItem is NavigationViewItem item)
+            {
+                switch (item.Tag.ToString())
                 {
-                    Debug.WriteLine($"MainWindow: IsUpdateAvailable? {updateInfo.IsUpdateAvailable}");
-                }
-
-                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
-                {
-                    Debug.WriteLine("MainWindow: Mise à jour disponible, affichage de la notification");
-                    NotificationManager.ShowToastNotification(
-                        "Update Available",
-                        $"NodaStack {updateInfo.Version} is available. Click to download.",
-                        NotificationType.Info);
-
-                    Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
-                }
-                else
-                {
-                    Debug.WriteLine("MainWindow: Pas de mise à jour disponible ou mise à jour non détectée");
-                    Log("No updates available or already running latest version", LogLevel.Info, "Updates");
+                    case "dashboard":
+                        ContentFrame.Navigate(_dashboardPage);
+                        UpdateDashboardState(); // Refresh UI
+                        break;
+                    case "monitoring":
+                        ContentFrame.Navigate(_monitoringPage);
+                        break;
+                    case "backups":
+                        ContentFrame.Navigate(_backupPage);
+                        break;
                 }
             }
-            catch (Exception ex)
+        }
+
+        // =================================================================================
+        // LOGIQUE SERVICES
+        // =================================================================================
+
+        private async void DashboardPage_ServiceToggleRequested(object? sender, string service)
+        {
+            switch (service)
             {
-                Debug.WriteLine($"MainWindow: Exception lors de la vérification: {ex}");
-                Log($"Error checking for updates: {ex.Message}", LogLevel.Error, "Updates");
-                throw;
+                case "apache": await ToggleApache(); break;
+                case "php": await TogglePhp(); break;
+                case "mysql": await ToggleMysql(); break;
+                case "phpmyadmin": await TogglePma(); break;
             }
         }
 
-        public async void CheckForUpdatesManually(object sender, RoutedEventArgs e)
+        private void UpdateDashboardState()
         {
-            try
-            {
-                statusBarManager?.UpdateStatus("⟳ Checking for updates...");
-
-                var updateChecker = new UpdateChecker();
-                var updateInfo = await updateChecker.CheckForUpdatesAsync();
-
-                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
-                {
-                    NotificationManager.ShowToastNotification(
-                        "Update Available",
-                        $"NodaStack {updateInfo.Version} is available. Click to download.",
-                        NotificationType.Info);
-
-                    Log($"Update available: version {updateInfo.Version}", LogLevel.Info, "Updates");
-                }
-                else
-                {
-                    NotificationManager.ShowToastNotification(
-                        "No Updates Available",
-                        "You are already using the latest version of NodaStack.",
-                        NotificationType.Success);
-
-                    Log("No updates available or already running latest version", LogLevel.Info, "Updates");
-                }
-
-                statusBarManager?.UpdateStatus("Ready");
-            }
-            catch (Exception ex)
-            {
-                Log($"Error checking for updates: {ex.Message}", LogLevel.Error, "Updates");
-                NotificationManager.ShowToastNotification(
-                    "Update Check Failed",
-                    $"Could not check for updates: {ex.Message}",
-                    NotificationType.Error);
-                statusBarManager?.UpdateStatus("Ready");
-            }
+            _dashboardPage.UpdateServiceStatus("apache", apacheIsRunning);
+            _dashboardPage.UpdateServiceStatus("php", phpIsRunning);
+            _dashboardPage.UpdateServiceStatus("mysql", mysqlIsRunning);
+            _dashboardPage.UpdateServiceStatus("phpmyadmin", phpmyadminIsRunning);
         }
 
-        public async Task<bool> DownloadAndInstallUpdate()
-        {
-            try
-            {
-                var updateChecker = new UpdateChecker();
-                var updateInfo = await updateChecker.CheckForUpdatesAsync();
-
-                if (updateInfo != null && updateInfo.IsUpdateAvailable && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
-                {
-                    var installer = new UpdateInstaller(logManager);
-                    return await installer.DownloadAndInstallUpdate(updateInfo.DownloadUrl);
-                }
-
-                NotificationManager.ShowToastNotification(
-                    "No Updates Available",
-                    "You are already using the latest version of NodaStack.",
-                    NotificationType.Info);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Log($"Error downloading update: {ex.Message}", LogLevel.Error, "Updates");
-                return false;
-            }
-        }
-
-        private void OpenBackupWindow()
-        {
-            var backupWindow = new BackupWindow();
-            backupWindow.Owner = this;
-            backupWindow.ShowDialog();
-        }
-
-        private void BackupMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            OpenBackupWindow();
-        }
-
-        private void SetupKeyboardShortcuts()
-        {
-            shortcutManager.RegisterShortcut(Key.M, ModifierKeys.Control, () => Monitoring_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.OemComma, ModifierKeys.Control, () => Configuration_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.N, ModifierKeys.Control, () => CreateProject_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.R, ModifierKeys.Control, () => RefreshProjects_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.F5, () => RefreshProjects_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.Q, ModifierKeys.Control, () => Close());
-            shortcutManager.RegisterShortcut(Key.F1, () => ShowHelp());
-
-            shortcutManager.RegisterShortcut(Key.D1, ModifierKeys.Control, () => StartApache_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.D2, ModifierKeys.Control, () => StartPHP_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.D3, ModifierKeys.Control, () => StartMySQL_Click(this, new RoutedEventArgs()));
-            shortcutManager.RegisterShortcut(Key.D4, ModifierKeys.Control, () => StartPhpMyAdmin_Click(this, new RoutedEventArgs()));
-        }
-
-        private void ShowHelp()
-        {
-            var helpMessage = "Keyboard Shortcuts:\n\n" +
-                             "Ctrl+M: Open Monitoring\n" +
-                             "Ctrl+,: Open Configuration\n" +
-                             "Ctrl+N: Create New Project\n" +
-                             "Ctrl+R / F5: Refresh Projects\n" +
-                             "Ctrl+Q: Quit Application\n" +
-                             "F1: Show Help";
-            MessageBox.Show(helpMessage, "Help", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void Log(string message, LogLevel level = LogLevel.Info, string service = "System")
-        {
-            logManager.Log(message, level, service);
-        }
-
-        private void ThemeToggle_Click(object sender, RoutedEventArgs e)
-        {
-            ThemeManager.IsDarkTheme = !ThemeManager.IsDarkTheme;
-
-            var themeButton = sender as Button;
-            if (themeButton != null)
-            {
-                var textBlock = themeButton.Content as TextBlock;
-                if (textBlock != null)
-                {
-                    textBlock.Text = ThemeManager.IsDarkTheme ? "☀️" : "🌙";
-                }
-            }
-
-            NotificationManager.ShowNotification(
-                "Theme Changed",
-                $"Switched to {(ThemeManager.IsDarkTheme ? "Dark" : "Light")} theme",
-                NotificationType.Info
-            );
-        }
-
-        private void Configuration_Click(object sender, RoutedEventArgs e)
-        {
-            OpenConfiguration();
-        }
-
-        private void Monitoring_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var monitoringWindow = new MonitoringWindow();
-                monitoringWindow.Owner = this;
-                monitoringWindow.Show();
-                Log("Monitoring window opened", LogLevel.Info);
-            }
-            catch (Exception ex)
-            {
-                Log($"Error opening monitoring window: {ex.Message}", LogLevel.Error);
-                                    NotificationManager.ShowToastNotification("Error", $"Failed to open monitoring: {ex.Message}", NotificationType.Error);
-            }
-        }
-
-        private void OpenConfiguration()
-        {
-            try
-            {
-                var configWindow = new ConfigurationWindow(configManager);
-                configWindow.Owner = this;
-                var result = configWindow.ShowDialog();
-
-                if (result == true)
-                {
-                    ApplyConfiguration();
-                    Log("Configuration updated", LogLevel.Info);
-                    NotificationManager.ShowToastNotification("Configuration", "Settings updated successfully", NotificationType.Success);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"Error opening configuration: {ex.Message}", LogLevel.Error);
-                                    NotificationManager.ShowToastNotification("Error", $"Failed to open configuration: {ex.Message}", NotificationType.Error);
-            }
-        }
-
-        private void ApplyConfiguration()
-        {
-            try
+        private async Task ToggleApache()
             {
                 var config = configManager.GetConfiguration();
-
-                ApachePortInfo.Text = $"Port: {config.ApachePort}";
-                PhpPortInfo.Text = $"Port: {config.PhpPort}";
-                MySqlPortInfo.Text = $"Port: {config.MySqlPort}";
-                PhpMyAdminPortInfo.Text = $"Port: {config.PhpMyAdminPort}";
-
-                Log("Configuration applied", LogLevel.Info);
-            }
-            catch (Exception ex)
-            {
-                Log($"Error applying configuration: {ex.Message}", LogLevel.Error);
-            }
-        }
-
-        private async void StartApache_Click(object sender, RoutedEventArgs e)
-        {
-            var apachePort = configManager.GetConfiguration().ApachePort;
-            var currentDir = Directory.GetCurrentDirectory();
-            var wwwPath = Path.Combine(currentDir, "www");
-
             if (!apacheIsRunning)
             {
-                statusBarManager?.UpdateStatus("Starting Apache...");
-                Log("Building nodastack_apache...", LogLevel.Info, "Apache");
-                await RunProcessAsync("docker build -t nodastack_apache ./Docker/apache");
-
-                Log("Launching nodastack_apache container...", LogLevel.Info, "Apache");
-                RunProcess($"docker run -d --rm -p {apachePort}:80 -v \"{wwwPath}:/var/www/html\" --name nodastack_apache nodastack_apache", () =>
-                {
+                await RunProcessAsync($"docker run -d --rm -p {config.ApachePort}:80 -v \"{projectManager.ProjectsPath}:/var/www/html\" --name nodastack_apache nodastack_apache");
                     apacheIsRunning = true;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log($"Apache container started on port {apachePort}.", LogLevel.Info, "Apache");
-                    NotificationManager.ShowToastNotification("Apache", "Apache started successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
             else
             {
-                statusBarManager?.UpdateStatus("Stopping Apache...");
-                Log("Stopping nodastack_apache container...", LogLevel.Info, "Apache");
-                RunProcess("docker stop nodastack_apache", () =>
-                {
+                await RunProcessAsync("docker stop nodastack_apache");
                     apacheIsRunning = false;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log("Apache container stopped.", LogLevel.Info, "Apache");
-                    NotificationManager.ShowToastNotification("Apache", "Apache stopped successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
+            UpdateDashboardState();
         }
 
-        private async void StartPHP_Click(object sender, RoutedEventArgs e)
+        private async Task TogglePhp()
         {
-            var phpPort = configManager.GetConfiguration().PhpPort;
-            var currentDir = Directory.GetCurrentDirectory();
-            var wwwPath = Path.Combine(currentDir, "www");
-
+            var config = configManager.GetConfiguration();
             if (!phpIsRunning)
             {
-                statusBarManager?.UpdateStatus("Starting PHP...");
-                Log("Building nodastack_php...", LogLevel.Info, "PHP");
-                await RunProcessAsync("docker build -t nodastack_php ./Docker/php");
-
-                Log("Launching nodastack_php container...", LogLevel.Info, "PHP");
-                RunProcess($"docker run -d --rm -p {phpPort}:8000 -v \"{wwwPath}:/var/www/html\" --name nodastack_php nodastack_php", () =>
-                {
+                await RunProcessAsync($"docker run -d --rm -p {config.PhpPort}:8000 -v \"{projectManager.ProjectsPath}:/var/www/html\" --name nodastack_php nodastack_php");
                     phpIsRunning = true;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log($"PHP container started on port {phpPort}.", LogLevel.Info, "PHP");
-                    NotificationManager.ShowToastNotification("PHP", "PHP started successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
             else
             {
-                statusBarManager?.UpdateStatus("Stopping PHP...");
-                Log("Stopping nodastack_php container...", LogLevel.Info, "PHP");
-                RunProcess("docker stop nodastack_php", () =>
-                {
+                await RunProcessAsync("docker stop nodastack_php");
                     phpIsRunning = false;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log("PHP container stopped.", LogLevel.Info, "PHP");
-                    NotificationManager.ShowToastNotification("PHP", "PHP stopped successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
+            UpdateDashboardState();
         }
 
-        private void UpdateServicesCount()
+        private async Task ToggleMysql()
         {
-            int runningServices = (apacheIsRunning ? 1 : 0) + (phpIsRunning ? 1 : 0) +
-                                 (mysqlIsRunning ? 1 : 0) + (phpmyadminIsRunning ? 1 : 0);
-
-            // DEBUG : Afficher les valeurs
-            Log($"Service Count Debug: Apache={apacheIsRunning}, PHP={phpIsRunning}, MySQL={mysqlIsRunning}, phpMyAdmin={phpmyadminIsRunning}, Total={runningServices}", LogLevel.Info, "Debug");
-
-            statusBarManager?.UpdateServicesCount(runningServices, 4);
-        }
-
-        private async void StartMySQL_Click(object sender, RoutedEventArgs e)
-        {
-            var mysqlPort = configManager.GetConfiguration().MySqlPort;
-
+            var config = configManager.GetConfiguration();
             if (!mysqlIsRunning)
             {
-                statusBarManager?.UpdateStatus("Starting MySQL...");
-                Log("Building nodastack_mysql...", LogLevel.Info, "MySQL");
-                await RunProcessAsync("docker build -t nodastack_mysql ./Docker/mysql");
-
-                Log("Launching nodastack_mysql container...", LogLevel.Info, "MySQL");
-                RunProcess($"docker run -d --rm -p {mysqlPort}:3306 --name nodastack_mysql nodastack_mysql", () =>
-                {
+                await RunProcessAsync($"docker run -d --rm -p {config.MySqlPort}:3306 --name nodastack_mysql nodastack_mysql");
                     mysqlIsRunning = true;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log($"MySQL container started on port {mysqlPort}.", LogLevel.Info, "MySQL");
-                    NotificationManager.ShowToastNotification("MySQL", "MySQL started successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
             else
             {
-                statusBarManager?.UpdateStatus("Stopping MySQL...");
-                Log("Stopping nodastack_phpmyadmin...", LogLevel.Info, "MySQL");
-                RunProcess("docker stop nodastack_phpmyadmin", () =>
-                {
-                    phpmyadminIsRunning = false;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log("phpMyAdmin container stopped.", LogLevel.Info, "MySQL");
-
-                    Log("Stopping nodastack_mysql...", LogLevel.Info, "MySQL");
-                    RunProcess("docker stop nodastack_mysql", () =>
-                    {
+                await RunProcessAsync("docker stop nodastack_mysql");
                         mysqlIsRunning = false;
-                        UpdateServiceIndicators();
-                        UpdateServiceButtons();
-                        Log("MySQL container stopped.", LogLevel.Info, "MySQL");
-                        NotificationManager.ShowToastNotification("MySQL", "MySQL stopped successfully", NotificationType.Success);
-                        statusBarManager?.UpdateStatus("Ready");
-                    });
-                });
             }
+            UpdateDashboardState();
         }
 
-        private async void StartPhpMyAdmin_Click(object sender, RoutedEventArgs e)
+        private async Task TogglePma()
         {
-            var phpmyadminPort = configManager.GetConfiguration().PhpMyAdminPort;
-
+            var config = configManager.GetConfiguration();
             if (!phpmyadminIsRunning)
             {
-                if (!mysqlIsRunning)
-                {
-                    statusBarManager?.UpdateStatus("Starting phpMyAdmin...");
-                    Log("MySQL must be running before starting phpMyAdmin.", LogLevel.Warning, "phpMyAdmin");
-                    NotificationManager.ShowToastNotification("Warning", "MySQL must be running before starting phpMyAdmin", NotificationType.Warning);
-                    return;
-                }
-
-                Log("Building nodastack_phpmyadmin...", LogLevel.Info, "phpMyAdmin");
-                await RunProcessAsync("docker build -t nodastack_phpmyadmin ./Docker/phpmyadmin");
-
-                Log("Launching nodastack_phpmyadmin container...", LogLevel.Info, "phpMyAdmin");
-                RunProcess($"docker run -d --rm -p {phpmyadminPort}:80 --name nodastack_phpmyadmin --link nodastack_mysql " +
-                        "-e PMA_HOST=nodastack_mysql -e PMA_USER=root -e PMA_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=yes " +
-                        "nodastack_phpmyadmin", () =>
-                {
+                await RunProcessAsync($"docker run -d --rm -p {config.PhpMyAdminPort}:80 --name nodastack_phpmyadmin --link nodastack_mysql -e PMA_HOST=nodastack_mysql nodastack_phpmyadmin");
                     phpmyadminIsRunning = true;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log($"phpMyAdmin container started on port {phpmyadminPort}.", LogLevel.Info, "phpMyAdmin");
-                    NotificationManager.ShowToastNotification("phpMyAdmin", "phpMyAdmin started successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
             else
             {
-                statusBarManager?.UpdateStatus("Stopping phpMyAdmin...");
-                Log("Stopping nodastack_phpmyadmin...", LogLevel.Info, "phpMyAdmin");
-                RunProcess("docker stop nodastack_phpmyadmin", () =>
-                {
+                await RunProcessAsync("docker stop nodastack_phpmyadmin");
                     phpmyadminIsRunning = false;
-                    UpdateServiceIndicators();
-                    UpdateServiceButtons();
-                    UpdateServicesCount();
-                    Log("phpMyAdmin container stopped.", LogLevel.Info, "phpMyAdmin");
-                    NotificationManager.ShowToastNotification("phpMyAdmin", "phpMyAdmin stopped successfully", NotificationType.Success);
-                    statusBarManager?.UpdateStatus("Ready");
-                });
             }
-        }
-
-        private void UpdateServiceIndicators()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                ApacheIndicator.Fill = apacheIsRunning ? Brushes.LimeGreen : Brushes.Red;
-                PhpIndicator.Fill = phpIsRunning ? Brushes.LimeGreen : Brushes.Red;
-                MySqlIndicator.Fill = mysqlIsRunning ? Brushes.LimeGreen : Brushes.Red;
-                PhpMyAdminIndicator.Fill = phpmyadminIsRunning ? Brushes.LimeGreen : Brushes.Red;
-            });
-        }
-
-        private void UpdateServiceButtons()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                StartApacheButton.Content = CreateButtonContent(apacheIsRunning ? "⏹️" : "▶️",
-                                                               apacheIsRunning ? "Stop Apache" : "Start Apache");
-                StartPHPButton.Content = CreateButtonContent(phpIsRunning ? "⏹️" : "▶️",
-                                                            phpIsRunning ? "Stop PHP" : "Start PHP");
-                StartMySQLButton.Content = CreateButtonContent(mysqlIsRunning ? "⏹️" : "▶️",
-                                                              mysqlIsRunning ? "Stop MySQL" : "Start MySQL");
-                StartPhpMyAdminButton.Content = CreateButtonContent(phpmyadminIsRunning ? "⏹️" : "▶️",
-                                                                   phpmyadminIsRunning ? "Stop phpMyAdmin" : "Start phpMyAdmin");
-
-                OpenApacheButton.IsEnabled = apacheIsRunning;
-                OpenPhpButton.IsEnabled = phpIsRunning;
-                OpenMySqlButton.IsEnabled = mysqlIsRunning;
-                OpenPhpMyAdminButton.IsEnabled = phpmyadminIsRunning;
-            });
-        }
-
-        private StackPanel CreateButtonContent(string icon, string text)
-        {
-            var stackPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-
-            var iconBlock = new TextBlock
-            {
-                Text = icon,
-                FontSize = 12,
-                Margin = new Thickness(0, 0, 5, 0)
-            };
-
-            var textBlock = new TextBlock
-            {
-                Text = text
-            };
-
-            stackPanel.Children.Add(iconBlock);
-            stackPanel.Children.Add(textBlock);
-
-            return stackPanel;
-        }
-
-        private void OpenApache_Click(object sender, RoutedEventArgs e)
-        {
-            if (apacheIsRunning)
-            {
-                try
-                {
-                    var apachePort = configManager.GetConfiguration().ApachePort;
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = $"http://localhost:{apachePort}",
-                        UseShellExecute = true
-                    });
-                    Log("Opening Apache in browser...", LogLevel.Info, "Apache");
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error opening Apache: {ex.Message}", LogLevel.Error, "Apache");
-                }
-            }
-        }
-
-        private void OpenPhp_Click(object sender, RoutedEventArgs e)
-        {
-            if (phpIsRunning)
-            {
-                try
-                {
-                    var phpPort = configManager.GetConfiguration().PhpPort;
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = $"http://localhost:{phpPort}",
-                        UseShellExecute = true
-                    });
-                    Log("Opening PHP in browser...", LogLevel.Info, "PHP");
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error opening PHP: {ex.Message}", LogLevel.Error, "PHP");
-                }
-            }
-        }
-
-        private void OpenMySql_Click(object sender, RoutedEventArgs e)
-        {
-            if (mysqlIsRunning)
-            {
-                try
-                {
-                    var mysqlPort = configManager.GetConfiguration().MySqlPort;
-                    string connectionString = $"Server=localhost;Port={mysqlPort};Database=nodastack;Uid=root;Pwd=;";
-                    System.Windows.Clipboard.SetText(connectionString);
-                    Log("MySQL connection string copied to clipboard!", LogLevel.Info, "MySQL");
-                    NotificationManager.ShowToastNotification("MySQL", "Connection string copied to clipboard", NotificationType.Info);
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error copying connection string: {ex.Message}", LogLevel.Error, "MySQL");
-                }
-            }
-        }
-
-        private void OpenPhpMyAdmin_Click(object sender, RoutedEventArgs e)
-        {
-            if (phpmyadminIsRunning)
-            {
-                try
-                {
-                    var phpmyadminPort = configManager.GetConfiguration().PhpMyAdminPort;
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = $"http://localhost:{phpmyadminPort}",
-                        UseShellExecute = true
-                    });
-                    Log("Opening phpMyAdmin in browser...", LogLevel.Info, "phpMyAdmin");
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error opening phpMyAdmin: {ex.Message}", LogLevel.Error, "phpMyAdmin");
-                }
-            }
-        }
-
-        private void RunProcess(string command, Action? onSuccess = null)
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/C {command}",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                var process = new Process { StartInfo = psi };
-                process.OutputDataReceived += (s, e) =>
-                {
-                    if (e.Data != null) Log(e.Data);
-                };
-                process.ErrorDataReceived += (s, e) =>
-                {
-                    if (e.Data != null && !string.IsNullOrWhiteSpace(e.Data))
-                    {
-                        if (!e.Data.Contains("No such container") || !command.Contains("docker stop"))
-                            Log("ERROR: " + e.Data, LogLevel.Error);
-                    }
-                };
-                process.Exited += (s, e) =>
-                {
-                    if (process.ExitCode == 0)
-                        onSuccess?.Invoke();
-                };
-
-                process.EnableRaisingEvents = true;
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
-            catch (Exception ex)
-            {
-                Log("Exception: " + ex.Message, LogLevel.Error);
-            }
+            UpdateDashboardState();
         }
 
         private async Task RunProcessAsync(string command)
@@ -750,470 +181,104 @@ namespace NodaStack
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
-
-                    var process = new Process { StartInfo = psi };
-                    process.OutputDataReceived += (s, e) => { if (e.Data != null) Log(e.Data); };
-                    process.ErrorDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null && !string.IsNullOrWhiteSpace(e.Data))
-                        {
-                            if (!e.Data.StartsWith("#") && !e.Data.Contains("DONE") && !e.Data.Contains("exporting"))
-                                Log("ERROR: " + e.Data, LogLevel.Error);
-                        }
-                    };
-
-                    process.Start();
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-
-                    process.WaitForExit();
+                    var p = Process.Start(psi);
+                    p?.WaitForExit();
                 }
-                catch (Exception ex)
-                {
-                    Log("Exception: " + ex.Message, LogLevel.Error);
-                }
+                catch (Exception ex) { Debug.WriteLine(ex.Message); }
             });
+        }
+
+        // =================================================================================
+        // DOCKER MANAGEMENT
+        // =================================================================================
+
+        public async Task BuildDockerImages()
+        {
+            // Determine root path (where Docker folder is)
+            // Assuming run from bin/Debug/net9.0-windows, we need to go up
+            // Or use projectManager.ProjectsPath parent? No, that's user data.
+            // Let's try to find "Docker" folder relative to AppDomain.CurrentDomain.BaseDirectory
+            
+            string appDir = AppDomain.CurrentDomain.BaseDirectory;
+            string projectRoot = Path.GetFullPath(Path.Combine(appDir, "..", "..", "..", "..")); // Adjust based on build depth
+            
+            // If not found, try current dir (portable mode)
+            if (!Directory.Exists(Path.Combine(projectRoot, "Docker")))
+            {
+                projectRoot = Directory.GetCurrentDirectory();
+            }
+
+            if (!Directory.Exists(Path.Combine(projectRoot, "Docker")))
+            {
+                MessageBox.Show($"Docker folder not found in {projectRoot}", "Error");
+                return;
+            }
+
+            await RunProcessAsync($"docker build -t nodastack_apache \"{Path.Combine(projectRoot, "Docker", "apache")}\"");
+            await RunProcessAsync($"docker build -t nodastack_php \"{Path.Combine(projectRoot, "Docker", "php")}\"");
+            await RunProcessAsync($"docker build -t nodastack_mysql \"{Path.Combine(projectRoot, "Docker", "mysql")}\"");
+            await RunProcessAsync($"docker build -t nodastack_phpmyadmin \"{Path.Combine(projectRoot, "Docker", "phpmyadmin")}\"");
         }
 
         private async void CheckInitialContainerStatus()
         {
-            statusBarManager?.UpdateStatus("Checking container status...");
-
-            await Task.Run(() =>
-            {
-                try
-                {
-                    // Apache
-                    bool apacheRunning = CheckContainerStatusSync("nodastack_apache");
-                    if (apacheRunning)
-                    {
-                        apacheIsRunning = true;
-                        Dispatcher.Invoke(() =>
-                        {
-                            UpdateServiceIndicators();
-                            UpdateServiceButtons();
-                        });
-                        Log("Apache container already running.", LogLevel.Info, "Apache");
-                    }
-
-                    // PHP
-                    bool phpRunning = CheckContainerStatusSync("nodastack_php");
-                    if (phpRunning)
-                    {
-                        phpIsRunning = true;
-                        Dispatcher.Invoke(() =>
-                        {
-                            UpdateServiceIndicators();
-                            UpdateServiceButtons();
-                        });
-                        Log("PHP container already running.", LogLevel.Info, "PHP");
-                    }
-
-                    // MySQL
-                    bool mysqlRunning = CheckContainerStatusSync("nodastack_mysql");
-                    if (mysqlRunning)
-                    {
-                        mysqlIsRunning = true;
-                        Dispatcher.Invoke(() =>
-                        {
-                            UpdateServiceIndicators();
-                            UpdateServiceButtons();
-                        });
-                        Log("MySQL container already running.", LogLevel.Info, "MySQL");
-                    }
-
-                    // phpMyAdmin
-                    bool phpmyadminRunning = CheckContainerStatusSync("nodastack_phpmyadmin");
-                    if (phpmyadminRunning)
-                    {
-                        phpmyadminIsRunning = true;
-                        Dispatcher.Invoke(() =>
-                        {
-                            UpdateServiceIndicators();
-                            UpdateServiceButtons();
-                        });
-                        Log("phpMyAdmin container already running.", LogLevel.Info, "phpMyAdmin");
-                    }
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        UpdateServicesCount();
-                        statusBarManager?.UpdateStatus("Ready");
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Log("Exception during status check: " + ex.Message, LogLevel.Error);
-                    Dispatcher.Invoke(() =>
-                    {
-                        statusBarManager?.UpdateStatus("Error checking status");
-                    });
-                }
-            });
-        }
-
-        private bool CheckContainerStatusSync(string containerName)
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/C docker ps --filter \"name=^{containerName}$\" --format \"{{{{.Names}}}}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                var process = new Process { StartInfo = psi };
-                process.Start();
-
-                string output = process.StandardOutput.ReadToEnd().Trim();
-                process.WaitForExit();
-
-                bool isRunning = !string.IsNullOrEmpty(output) && output.Equals(containerName, StringComparison.OrdinalIgnoreCase);
-                return isRunning;
-            }
-            catch (Exception ex)
-            {
-                Log($"Exception during {containerName} status check: " + ex.Message, LogLevel.Error);
-                return false;
-            }
-        }
-
-        private void RefreshProjectsList()
-        {
-            try
-            {
-                var projects = projectManager.GetProjects();
-                ProjectsListView.ItemsSource = projects;
-                Log($"Found {projects.Count} project(s) in www/ directory", LogLevel.Info);
-            }
-            catch (Exception ex)
-            {
-                Log($"Error loading projects: {ex.Message}", LogLevel.Error);
-            }
-        }
-
-        private void ProjectsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var hasSelection = ProjectsListView.SelectedItem != null;
-            OpenProjectButton.IsEnabled = hasSelection;
-            ViewApacheButton.IsEnabled = hasSelection && apacheIsRunning;
-            ViewPhpButton.IsEnabled = hasSelection && phpIsRunning;
-            DeleteProjectButton.IsEnabled = hasSelection;
-            ShareProjectButton.IsEnabled = hasSelection;
-        }
-
-        private void NewProjectTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (NewProjectTextBox.Text == "Project name..." && NewProjectTextBox.Foreground == Brushes.Gray)
-            {
-                NewProjectTextBox.Text = "";
-                NewProjectTextBox.Foreground = Brushes.Black;
-            }
-        }
-
-        private void NewProjectTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(NewProjectTextBox.Text))
-            {
-                NewProjectTextBox.Text = "Project name...";
-                NewProjectTextBox.Foreground = Brushes.Gray;
-            }
-        }
-
-        private void CreateProject_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var projectName = NewProjectTextBox.Text.Trim();
-
-                if (string.IsNullOrWhiteSpace(projectName) || projectName == "Project name...")
-                {
-                    NotificationManager.ShowToastNotification("Error", "Please enter a project name", NotificationType.Warning);
-                    return;
-                }
-
-                if (projectManager.CreateProject(projectName))
-                {
-                    Log($"Project '{projectName}' created successfully", LogLevel.Info);
-                    NewProjectTextBox.Text = "Project name...";
-                    NewProjectTextBox.Foreground = Brushes.Gray;
-                    RefreshProjectsList();
-                    NotificationManager.ShowToastNotification("Success", $"Project '{projectName}' created successfully", NotificationType.Success);
-                }
-                else
-                {
-                    Log($"Failed to create project '{projectName}' (already exists or invalid name)", LogLevel.Error);
-                    NotificationManager.ShowToastNotification("Error", "Failed to create project. It may already exist or the name is invalid.", NotificationType.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"Error creating project: {ex.Message}", LogLevel.Error);
-                                    NotificationManager.ShowToastNotification("Error", $"Error creating project: {ex.Message}", NotificationType.Error);
-            }
-        }
-
-        private async void ShareProject_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProjectsListView.SelectedItem is ProjectInfo project)
-            {
-                try
-                {
-                    var config = configManager.GetConfiguration();
-
-                    if (string.IsNullOrEmpty(config.NgrokAuthToken))
-                    {
-                        NotificationManager.ShowNotification(
-                            "Configuration required",
-                            "Please configure your ngrok token in the settings.",
-                            NotificationType.Warning
-                        );
-                        OpenConfiguration();
-                        return;
-                    }
-
-                    statusBarManager?.UpdateStatus("Creating ngrok tunnel...");
-                    var tunnelService = new TunnelService(config.NgrokAuthToken, logManager);
-                    Log("Starting project sharing...", LogLevel.Info, "Share");
-
-                    string url = await tunnelService.StartTunnelAsync(project.Name, config.ApachePort);
-
-                    // Securely copy the URL to the clipboard
-                    try
-                    {
-                        System.Windows.Clipboard.SetText(url);
-                        Log("URL copied to clipboard", LogLevel.Info, "Share");
-                    }
-                    catch (Exception clipboardEx)
-                    {
-                        Log($"Unable to copy URL to clipboard: {clipboardEx.Message}", LogLevel.Warning, "Share");
-                        // Continue despite clipboard error
-                    }
-
-                    NotificationManager.ShowToastNotification(
-                        "Project shared",
-                        $"URL: {url}\n{(System.Windows.Clipboard.ContainsText() ? "(copied to clipboard)" : "")}",
-                        NotificationType.Success);
-                    Log($"Project '{project.Name}' shared at {url}", LogLevel.Info, "Share");
-                    statusBarManager?.UpdateStatus("Ready");
-                }
-                catch (Exception ex)
-                {
-                    Log($"Share error: {ex.Message}", LogLevel.Error, "Share");
-                    NotificationManager.ShowToastNotification("Share error", ex.Message, NotificationType.Error);
-                    statusBarManager?.UpdateStatus("Ready");
-                }
-            }
-        }
-
-        private void RefreshProjects_Click(object sender, RoutedEventArgs e)
-        {
-            RefreshProjectsList();
-        }
-
-        private void OpenProjectsFolder_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var projectsPath = projectManager.GetProjectsPath();
-                Process.Start(new ProcessStartInfo(projectsPath) { UseShellExecute = true });
-                Log($"Opened projects folder: {projectsPath}", LogLevel.Info);
-            }
-            catch (Exception ex)
-            {
-                Log($"Error opening projects folder: {ex.Message}", LogLevel.Error);
-                                    NotificationManager.ShowToastNotification("Error", $"Failed to open projects folder: {ex.Message}", NotificationType.Error);
-            }
-        }
-
-        private void OpenProject_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProjectsListView.SelectedItem is ProjectInfo project)
-            {
-                try
-                {
-                    var projectPath = Path.Combine(projectManager.GetProjectsPath(), project.Name);
-                    Process.Start(new ProcessStartInfo(projectPath) { UseShellExecute = true });
-                    Log($"Opened project: {project.Name}", LogLevel.Info);
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error opening project: {ex.Message}", LogLevel.Error);
-                    NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
-                }
-            }
-        }
-
-        private void ViewApache_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProjectsListView.SelectedItem is ProjectInfo project)
-            {
-                if (apacheIsRunning)
-                {
-                    try
-                    {
-                        var url = $"http://localhost:{configManager.GetConfiguration().ApachePort}/{project.Name}";
-                        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                        Log($"Opening project '{project.Name}' via Apache", LogLevel.Info);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"Error opening project via Apache: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
-                    }
-                }
-                else
-                {
-                    NotificationManager.ShowToastNotification("Warning", "Apache must be running to view projects", NotificationType.Warning);
-                }
-            }
-        }
-
-        private void ViewPhp_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProjectsListView.SelectedItem is ProjectInfo project)
-            {
-                if (phpIsRunning)
-                {
-                    try
-                    {
-                        var url = $"http://localhost:{configManager.GetConfiguration().PhpPort}/{project.Name}";
-                        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                        Log($"Opening project '{project.Name}' via PHP server", LogLevel.Info);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"Error opening project via PHP: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowToastNotification("Error", $"Failed to open project: {ex.Message}", NotificationType.Error);
-                    }
-                }
-                else
-                {
-                    NotificationManager.ShowToastNotification("Warning", "PHP server must be running to view projects", NotificationType.Warning);
-                }
-            }
-        }
-
-        private void DeleteProject_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProjectsListView.SelectedItem is ProjectInfo project)
-            {
-                var result = MessageBox.Show($"Are you sure you want to delete the project '{project.Name}'?\n\nThis action cannot be undone.",
-                                           "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        if (projectManager.DeleteProject(project.Name))
-                        {
-                            Log($"Project '{project.Name}' deleted successfully", LogLevel.Info);
-                            RefreshProjectsList();
-                            NotificationManager.ShowToastNotification("Success", $"Project '{project.Name}' deleted", NotificationType.Success);
-                        }
-                        else
-                        {
-                            Log($"Failed to delete project '{project.Name}'", LogLevel.Error);
-                            NotificationManager.ShowToastNotification("Error", "Failed to delete project", NotificationType.Error);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"Error deleting project: {ex.Message}", LogLevel.Error);
-                        NotificationManager.ShowToastNotification("Error", $"Error deleting project: {ex.Message}", NotificationType.Error);
-                    }
-                }
-            }
-        }
-
-        private void InitializeSystemTray()
-        {
-            try
-            {
-                systemTrayIcon = new WinForms.NotifyIcon();
-                systemTrayIcon.Icon = WinFormsDrawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                systemTrayIcon.Text = "NodaStack";
-                systemTrayIcon.Visible = true;
-
-                // Create context menu
-                var contextMenu = new WinForms.ContextMenuStrip();
-                contextMenu.Items.Add("Show NodaStack", null, (s, e) => ShowFromTray());
-                contextMenu.Items.Add("-"); // Separator
-                contextMenu.Items.Add("Exit", null, (s, e) => ExitApplication());
-
-                systemTrayIcon.ContextMenuStrip = contextMenu;
-                systemTrayIcon.DoubleClick += (s, e) => ShowFromTray();
-
-                Log("System tray initialized", LogLevel.Info, "System");
-            }
-            catch (Exception ex)
-            {
-                Log($"Failed to initialize system tray: {ex.Message}", LogLevel.Error, "System");
-            }
-        }
-
-        private void ShowFromTray()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                Show();
-                WindowState = WindowState.Normal;
-                ShowInTaskbar = true;
-                Activate();
-            });
-        }
-
-        private void ExitApplication()
-        {
-            isClosing = true;
-            systemTrayIcon?.Dispose();
-            System.Windows.Application.Current.Shutdown();
-        }
-
-        protected override void OnStateChanged(EventArgs e)
-        {
-            base.OnStateChanged(e);
+            // Check if images exist, if not, maybe prompt? 
+            // For now, assume they exist or user will click Rebuild in Settings if things fail.
+            // Real check logic could go here.
             
-            if (WindowState == WindowState.Minimized && configManager.Configuration.Settings.MinimizeToTray)
-            {
-                ShowInTaskbar = false;
-                if (configManager.Configuration.Settings.ShowTrayNotifications)
-                {
-                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application minimized to system tray", WinForms.ToolTipIcon.Info);
-                }
-            }
+            UpdateDashboardState();
+            await Task.CompletedTask;
         }
 
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        // =================================================================================
+        // UPDATES (Pour ConfigurationWindow)
+        // =================================================================================
+
+        public void CheckForUpdatesManually(object sender, RoutedEventArgs e)
         {
-            if (!isClosing && configManager.Configuration.Settings.MinimizeToTray)
-            {
-                e.Cancel = true;
-                WindowState = WindowState.Minimized;
-                ShowInTaskbar = false;
-                
-                if (configManager.Configuration.Settings.ShowTrayNotifications)
-                {
-                    systemTrayIcon?.ShowBalloonTip(3000, "NodaStack", "Application running in background", WinForms.ToolTipIcon.Info);
-                }
-            }
-            else
-            {
-                systemTrayIcon?.Dispose();
-            }
-            
-            base.OnClosing(e);
+            MessageBox.Show("Update check stub.", "Info");
         }
 
-        protected override void OnClosed(EventArgs e)
+        public async Task DownloadAndInstallUpdate()
         {
-            shortcutManager?.ClearShortcuts();
-            statusBarManager?.Dispose();
-            systemTrayIcon?.Dispose();
-            base.OnClosed(e);
+            await Task.Delay(100);
+            MessageBox.Show("Update install stub.", "Info");
+        }
+
+        // =================================================================================
+        // ACTIONS
+        // =================================================================================
+
+        private void OpenConfiguration()
+        {
+            var configWindow = new ConfigurationWindow(configManager);
+            configWindow.Owner = this;
+            configWindow.ShowDialog();
+        }
+
+        private void OpenMonitoring()
+        {
+            var monitoringWindow = new MonitoringWindow();
+            monitoringWindow.Owner = this;
+            monitoringWindow.Show();
+        }
+
+        private void OpenBackups()
+        {
+            var backupWindow = new BackupWindow();
+            backupWindow.Owner = this;
+            backupWindow.ShowDialog();
+        }
+
+        public void CreateProject_Click(object sender, RoutedEventArgs e)
+        {
+            projectManager.CreateProject("NewProject_" + DateTime.Now.Ticks);
+        }
+
+        public void ViewApache_Direct(ProjectInfo project)
+        {
+            var config = configManager.GetConfiguration();
+            try { Process.Start(new ProcessStartInfo($"http://localhost:{config.ApachePort}/{project.Name}") { UseShellExecute = true }); } catch { }
         }
     }
 }

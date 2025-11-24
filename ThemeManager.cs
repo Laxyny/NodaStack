@@ -33,13 +33,22 @@ namespace NodaStack
 
             try
             {
-                app.Resources.Clear();
                 ModernWpf.ThemeManager.Current.ApplicationTheme = isDark ? ApplicationTheme.Dark : ApplicationTheme.Light;
                 ModernWpf.ThemeManager.Current.AccentColor = DefaultAccentColor;
 
                 if (isDark)
                 {
-                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(48, 48, 48));
+                    // Ultra Modern Dark Theme - Vibrant & Deep
+                    app.Resources["BackgroundBrush"] = new SolidColorBrush(Color.FromRgb(15, 23, 42)); // #0F172A
+                    app.Resources["SurfaceBrush"] = new SolidColorBrush(Color.FromRgb(30, 41, 59)); // #1E293B
+                    app.Resources["CardBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(51, 65, 85)); // #334155
+                    app.Resources["CardBorderBrush"] = new SolidColorBrush(Color.FromRgb(71, 85, 105)); // #475569
+                    app.Resources["TextPrimaryBrush"] = new SolidColorBrush(Color.FromRgb(248, 250, 252)); // #F8FAFC
+                    app.Resources["TextSecondaryBrush"] = new SolidColorBrush(Color.FromRgb(203, 213, 225)); // #CBD5E1
+                    app.Resources["PrimaryBrush"] = new SolidColorBrush(Color.FromRgb(0, 120, 212)); // #0078D4
+                    app.Resources["PrimaryDarkBrush"] = new SolidColorBrush(Color.FromRgb(0, 90, 158)); // #005A9E
+                    
+                    // Legacy support
                     app.Resources["ForegroundBrush"] = new SolidColorBrush(Colors.White);
                     app.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
                     app.Resources["ButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
@@ -52,7 +61,17 @@ namespace NodaStack
                 }
                 else
                 {
+                    // Ultra Modern Light Theme - Clean & Vibrant
                     app.Resources["BackgroundBrush"] = new SolidColorBrush(Colors.White);
+                    app.Resources["SurfaceBrush"] = new SolidColorBrush(Color.FromRgb(241, 245, 249)); // #F1F5F9
+                    app.Resources["CardBackgroundBrush"] = new SolidColorBrush(Colors.White);
+                    app.Resources["CardBorderBrush"] = new SolidColorBrush(Color.FromRgb(226, 232, 240)); // #E2E8F0
+                    app.Resources["TextPrimaryBrush"] = new SolidColorBrush(Color.FromRgb(15, 23, 42)); // #0F172A
+                    app.Resources["TextSecondaryBrush"] = new SolidColorBrush(Color.FromRgb(100, 116, 139)); // #64748B
+                    app.Resources["PrimaryBrush"] = new SolidColorBrush(Color.FromRgb(0, 120, 212)); // #0078D4
+                    app.Resources["PrimaryDarkBrush"] = new SolidColorBrush(Color.FromRgb(0, 90, 158)); // #005A9E
+                    
+                    // Legacy support
                     app.Resources["ForegroundBrush"] = new SolidColorBrush(Colors.Black);
                     app.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(240, 240, 240));
                     app.Resources["ButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(230, 230, 230));

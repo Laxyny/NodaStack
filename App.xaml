@@ -9,6 +9,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemeResources />
                 <ui:XamlControlsResources />
+                <ResourceDictionary Source="Styles/ThemeResources.xaml"/>
+                <ResourceDictionary Source="Styles/ProfessionalStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
         </ResourceDictionary>
