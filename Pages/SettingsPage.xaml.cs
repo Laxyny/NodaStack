@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Threading.Tasks;
 using ModernWpf.Controls;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace NodaStack.Pages
 {
@@ -28,6 +30,13 @@ namespace NodaStack.Pages
             AutoStartSwitch.IsOn = config.Settings.AutoStartServices;
             DarkModeSwitch.IsOn = config.Settings.DarkMode;
             ProjectsPathBox.Text = config.Settings.ProjectsPath;
+
+            // Load App Version
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            if (version != null)
+            {
+                AppVersionText.Text = $"Version {version.Major}.{version.Minor}.{version.Build}";
+            }
         }
 
         private void BrowsePath_Click(object sender, RoutedEventArgs e)
@@ -104,6 +113,15 @@ namespace NodaStack.Pages
             {
                 RebuildButton.IsEnabled = true;
             }
+        }
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+                e.Handled = true;
+            }
+            catch { }
         }
     }
 }

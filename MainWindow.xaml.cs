@@ -272,6 +272,13 @@ namespace NodaStack
                     {
                         p.StartInfo = psi;
                         p.Start();
+                        
+                        if (p.StandardOutput == null || p.StandardError == null)
+                        {
+                             p.WaitForExit();
+                             return p.ExitCode == 0;
+                        }
+
                         var stdoutTask = p.StandardOutput.ReadToEndAsync();
                         var stderrTask = p.StandardError.ReadToEndAsync();
 
