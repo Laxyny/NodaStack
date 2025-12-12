@@ -99,7 +99,7 @@
                 </Border>
 
                 <!-- phpMyAdmin -->
-                <Border Style="{StaticResource ProCardStyle}" Margin="0" Height="100">
+                <Border Style="{StaticResource ProCardStyle}" Margin="0,0,16,0" Height="100">
                     <Grid VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -117,6 +117,28 @@
                         </StackPanel>
                         
                         <ui:ToggleSwitch x:Name="PmaToggle" Grid.Column="2" Toggled="PmaToggle_Click" Margin="16,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- MailHog -->
+                <Border Style="{StaticResource ProCardStyle}" Margin="0" Height="100">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#10FF0000" Margin="0,0,16,0">
+                            <Ellipse x:Name="MailHogStatusDot" Width="12" Height="12" Fill="Red"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="MailHog" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+                            <TextBlock Text="Email Catching • Port 8025" Style="{StaticResource SettingDescriptionStyle}"/>
+                        </StackPanel>
+
+                        <ui:ToggleSwitch x:Name="MailHogToggle" Grid.Column="2" Toggled="MailHogToggle_Click" Margin="16,0,0,0"/>
                     </Grid>
                 </Border>
             </ItemsControl>
@@ -162,7 +184,9 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,16,0">
-                                        <Button Content="Open" Padding="12,6" Margin="0,0,8,0" Click="OpenProject_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                                        <Button Content="Code" ToolTip="Open in VS Code" Padding="10,6" Margin="0,0,4,0" Click="OpenVSCode_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                                        <Button Content="Term" ToolTip="Open Terminal" Padding="10,6" Margin="0,0,4,0" Click="OpenTerminal_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
+                                        <Button Content="Open" Padding="12,6" Margin="0,0,4,0" Click="OpenProject_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
                                         <Button Content="Browse" Padding="12,6" Click="BrowseProject_Click" Tag="{Binding}" Style="{StaticResource ProSecondaryButtonStyle}"/>
                                     </StackPanel>
                                 </DataTemplate>

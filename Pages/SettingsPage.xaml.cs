@@ -26,10 +26,16 @@ namespace NodaStack.Pages
             ApachePortBox.Value = config.Ports["Apache"];
             PhpPortBox.Value = config.Ports["PHP"];
             MysqlPortBox.Value = config.Ports["MySQL"];
+            PmaPortBox.Value = config.Ports.TryGetValue("phpMyAdmin", out int pma) ? pma : 8081;
+            MailHogWebPortBox.Value = config.Ports.TryGetValue("MailHogWeb", out int mh) ? mh : 8025;
             
             AutoStartSwitch.IsOn = config.Settings.AutoStartServices;
             DarkModeSwitch.IsOn = config.Settings.DarkMode;
             ProjectsPathBox.Text = config.Settings.ProjectsPath;
+
+            MinimizeToTraySwitch.IsOn = config.Settings.MinimizeToTray;
+            StartMinimizedSwitch.IsOn = config.Settings.StartMinimized;
+            KeepDockerRunningSwitch.IsOn = config.Settings.KeepDockerRunning;
 
             // Load App Version
             var version = Assembly.GetExecutingAssembly().GetName().Version;
@@ -70,7 +76,9 @@ namespace NodaStack.Pages
                     { "Apache", (int)ApachePortBox.Value },
                     { "PHP", (int)PhpPortBox.Value },
                     { "MySQL", (int)MysqlPortBox.Value },
-                    { "phpMyAdmin", 8081 }
+                    { "phpMyAdmin", (int)PmaPortBox.Value },
+                    { "MailHogWeb", (int)MailHogWebPortBox.Value },
+                    { "MailHogSMTP", configManager.Configuration.Ports.TryGetValue("MailHogSMTP", out int smtp) ? smtp : 1025 }
                 };
                 configManager.UpdatePorts(newPorts);
 
@@ -78,6 +86,10 @@ namespace NodaStack.Pages
                 settings.AutoStartServices = AutoStartSwitch.IsOn;
                 settings.DarkMode = DarkModeSwitch.IsOn;
                 settings.ProjectsPath = ProjectsPathBox.Text;
+                
+                settings.MinimizeToTray = MinimizeToTraySwitch.IsOn;
+                settings.StartMinimized = StartMinimizedSwitch.IsOn;
+                settings.KeepDockerRunning = KeepDockerRunningSwitch.IsOn;
                 
                 configManager.UpdateSettings(settings);
                 configManager.SaveConfiguration();

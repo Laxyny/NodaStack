@@ -29,11 +29,13 @@
     "StartMinimized": false,
     "ShowTrayNotifications": true,
     "AutoStartDocker": false,
-    "KeepDockerRunning": true
+    "KeepDockerRunning": false
   },
   "NgrokAuthToken": "",
   "ApachePort": 8080,
   "PhpPort": 8000,
   "MySqlPort": 3306,
-  "PhpMyAdminPort": 8081
+  "PhpMyAdminPort": 8081,
+  "MailHogSmtpPort": 1025,
+  "MailHogWebPort": 8025
 }

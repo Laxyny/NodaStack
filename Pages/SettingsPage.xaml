@@ -82,6 +82,81 @@
                             </StackPanel>
                             <ui:NumberBox x:Name="MysqlPortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
                         </Grid>
+                        <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5"/>
+
+                        <!-- phpMyAdmin -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="phpMyAdmin Port" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Database Management (GUI)" Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:NumberBox x:Name="PmaPortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
+                        </Grid>
+                        <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5"/>
+
+                        <!-- MailHog -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="MailHog Web Port" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Email Catching Interface" Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:NumberBox x:Name="MailHogWebPortBox" Grid.Column="1" SpinButtonPlacementMode="Inline" Minimum="1" Maximum="65535"/>
+                        </Grid>
+                    </ui:SimpleStackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Application Behavior -->
+            <Border Style="{StaticResource ProCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Application Behavior" Style="{StaticResource SectionTitleStyle}"/>
+                    
+                    <ui:SimpleStackPanel Spacing="16">
+                         <!-- System Tray Options -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Minimize to System Tray" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Keep running in background when closed." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:ToggleSwitch x:Name="MinimizeToTraySwitch" Grid.Column="1"/>
+                        </Grid>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Start Minimized" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Start application in system tray." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:ToggleSwitch x:Name="StartMinimizedSwitch" Grid.Column="1"/>
+                        </Grid>
+
+                         <!-- Docker Options -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Keep Docker Running" Style="{StaticResource SettingHeaderStyle}"/>
+                                <TextBlock Text="Don't stop containers when NodaStack closes." Style="{StaticResource SettingDescriptionStyle}"/>
+                            </StackPanel>
+                            <ui:ToggleSwitch x:Name="KeepDockerRunningSwitch" Grid.Column="1"/>
+                        </Grid>
                     </ui:SimpleStackPanel>
                 </StackPanel>
             </Border>

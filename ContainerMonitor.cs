@@ -40,7 +40,7 @@ namespace NodaStack
             {
                 try
                 {
-                    var containerNames = new[] { "nodastack_apache", "nodastack_php", "nodastack_mysql", "nodastack_phpmyadmin" };
+                    var containerNames = new[] { "nodastack_apache", "nodastack_php", "nodastack_mysql", "nodastack_phpmyadmin", "nodastack_mailhog" };
 
                     foreach (var containerName in containerNames)
                     {

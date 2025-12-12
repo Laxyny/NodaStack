@@ -9,7 +9,9 @@ public class NodaStackConfiguration
         { "Apache", 8080 },
         { "PHP", 8000 },
         { "MySQL", 3306 },
-        { "phpMyAdmin", 8081 }
+        { "phpMyAdmin", 8081 },
+        { "MailHogSMTP", 1025 },
+        { "MailHogWeb", 8025 }
     };
 
     public Dictionary<string, string> Versions { get; set; } = new Dictionary<string, string>
@@ -26,6 +28,8 @@ public class NodaStackConfiguration
     public int PhpPort => Ports.TryGetValue("PHP", out var port) ? port : 8000;
     public int MySqlPort => Ports.TryGetValue("MySQL", out var port) ? port : 3306;
     public int PhpMyAdminPort => Ports.TryGetValue("phpMyAdmin", out var port) ? port : 8081;
+    public int MailHogSmtpPort => Ports.TryGetValue("MailHogSMTP", out var port) ? port : 1025;
+    public int MailHogWebPort => Ports.TryGetValue("MailHogWeb", out var port) ? port : 8025;
 }
 
 public class NodaStackSettings

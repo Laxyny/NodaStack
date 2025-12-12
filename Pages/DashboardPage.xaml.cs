@@ -57,6 +57,11 @@ namespace NodaStack.Pages
                     PmaStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
                     PmaToggle.IsEnabled = true;
                     break;
+                case "mailhog":
+                    MailHogToggle.IsOn = isRunning;
+                    MailHogStatusDot.Fill = isRunning ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("ErrorBrush");
+                    MailHogToggle.IsEnabled = true;
+                    break;
             }
             
             EnableAllToggles();
@@ -68,6 +73,7 @@ namespace NodaStack.Pages
             PhpToggle.IsEnabled = false;
             MysqlToggle.IsEnabled = false;
             PmaToggle.IsEnabled = false;
+            MailHogToggle.IsEnabled = false;
         }
 
         public void EnableAllToggles()
@@ -76,6 +82,7 @@ namespace NodaStack.Pages
             PhpToggle.IsEnabled = true;
             MysqlToggle.IsEnabled = true;
             PmaToggle.IsEnabled = true;
+            MailHogToggle.IsEnabled = true;
         }
 
         private void ApacheToggle_Click(object sender, RoutedEventArgs e) 
@@ -97,6 +104,11 @@ namespace NodaStack.Pages
         { 
             DisableAllToggles();
             ServiceToggleRequested?.Invoke(this, "phpmyadmin"); 
+        }
+        private void MailHogToggle_Click(object sender, RoutedEventArgs e) 
+        { 
+            DisableAllToggles();
+            ServiceToggleRequested?.Invoke(this, "mailhog"); 
         }
 
         private void NewProject_Click(object sender, RoutedEventArgs e)
@@ -125,6 +137,43 @@ namespace NodaStack.Pages
                 try
                 {
                     Process.Start("explorer.exe", project.Path);
+                }
+                catch { }
+            }
+        }
+
+        private void OpenVSCode_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is ProjectInfo project)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo("code", ".")
+                    {
+                        WorkingDirectory = project.Path,
+                        UseShellExecute = true,
+                        CreateNoWindow = true
+                    };
+                    Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("VS Code not found or error launching: " + ex.Message, "Error");
+                }
+            }
+        }
+
+        private void OpenTerminal_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is ProjectInfo project)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo("cmd.exe", $"/k cd /d \"{project.Path}\"")
+                    {
+                        UseShellExecute = true
+                    };
+                    Process.Start(psi);
                 }
                 catch { }
             }

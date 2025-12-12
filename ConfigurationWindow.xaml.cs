@@ -43,6 +43,9 @@ namespace NodaStack
             PhpPortTextBox.Text = config.Ports["PHP"].ToString();
             MySqlPortTextBox.Text = config.Ports["MySQL"].ToString();
             PhpMyAdminPortTextBox.Text = config.Ports["phpMyAdmin"].ToString();
+            
+            // MailHog (Web Port only for UI)
+            MailHogWebPortTextBox.Text = config.Ports.TryGetValue("MailHogWeb", out int mhPort) ? mhPort.ToString() : "8025";
 
             // Version texts removed from UI - versions are managed in Docker files
 
@@ -96,6 +99,7 @@ namespace NodaStack
             PhpPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             MySqlPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
             PhpMyAdminPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
+            MailHogWebPortTextBox.TextChanged += (s, e) => DelayedPortCheck();
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
@@ -118,6 +122,7 @@ namespace NodaStack
                         CheckPortStatus(PhpPortTextBox, PhpPortStatus);
                         CheckPortStatus(MySqlPortTextBox, MySqlPortStatus);
                         CheckPortStatus(PhpMyAdminPortTextBox, PhpMyAdminPortStatus);
+                        CheckPortStatus(MailHogWebPortTextBox, MailHogWebPortStatus);
                     });
                 });
             }, null, 500, Timeout.Infinite);
@@ -165,6 +170,7 @@ namespace NodaStack
                     CheckPortStatus(PhpPortTextBox, PhpPortStatus);
                     CheckPortStatus(MySqlPortTextBox, MySqlPortStatus);
                     CheckPortStatus(PhpMyAdminPortTextBox, PhpMyAdminPortStatus);
+                    CheckPortStatus(MailHogWebPortTextBox, MailHogWebPortStatus);
                 });
             });
         }
@@ -234,7 +240,10 @@ namespace NodaStack
                     { "Apache", int.Parse(ApachePortTextBox.Text) },
                     { "PHP", int.Parse(PhpPortTextBox.Text) },
                     { "MySQL", int.Parse(MySqlPortTextBox.Text) },
-                    { "phpMyAdmin", int.Parse(PhpMyAdminPortTextBox.Text) }
+                    { "phpMyAdmin", int.Parse(PhpMyAdminPortTextBox.Text) },
+                    { "MailHogWeb", int.Parse(MailHogWebPortTextBox.Text) },
+                    // Preserve SMTP port if exists, or default
+                    { "MailHogSMTP", configManager.Configuration.Ports.TryGetValue("MailHogSMTP", out int smtp) ? smtp : 1025 }
                 };
                 configManager.UpdatePorts(newPorts);
 
@@ -289,7 +298,8 @@ namespace NodaStack
                 ApachePortTextBox.Text,
                 PhpPortTextBox.Text,
                 MySqlPortTextBox.Text,
-                PhpMyAdminPortTextBox.Text
+                PhpMyAdminPortTextBox.Text,
+                MailHogWebPortTextBox.Text
             };
 
             var parsedPorts = new List<int>();
