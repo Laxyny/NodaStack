@@ -76,6 +76,38 @@ namespace NodaStack
 
             // Initial Check
             CheckInitialContainerStatus();
+            
+            // Auto Update Check
+            _ = CheckForUpdatesSilent();
+        }
+
+        private async Task CheckForUpdatesSilent()
+        {
+            try
+            {
+                var updateManager = new UpdateManager();
+                var (hasUpdate, info) = await updateManager.CheckForUpdatesAsync();
+
+                if (hasUpdate && info != null)
+                {
+                    var result = MessageBox.Show($"A new version ({info.Version}) of NodaStack is available.\nInstall it now?", 
+                        "Update Available", 
+                        MessageBoxButton.YesNo, 
+                        MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                         // Select Settings in NavView
+                         NavView.SelectedItem = NavView.SettingsItem;
+                         ContentFrame.Navigate(_settingsPage);
+                         
+                         // Wait a bit for UI to load then trigger
+                         await Task.Delay(500);
+                         _settingsPage.StartAutoUpdate();
+                    }
+                }
+            }
+            catch { /* Silent fail */ }
         }
 
         private void InitializeSystemTray()

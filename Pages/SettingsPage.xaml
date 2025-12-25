@@ -15,6 +15,25 @@
             <!-- Services & Ports -->
             <Border Style="{StaticResource ProCardStyle}">
                 <StackPanel>
+                    
+                    <!-- Update Section -->
+                    <Grid Margin="0,0,0,24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Software Update" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
+                            <TextBlock x:Name="UpdateStatusText" Text="Check for the latest version of NodaStack." Style="{StaticResource SettingDescriptionStyle}"/>
+                            <ProgressBar x:Name="UpdateProgressBar" Height="4" Margin="0,8,0,0" Visibility="Collapsed"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                            <Button x:Name="CheckUpdatesButton" Content="Check for Updates" Click="CheckUpdates_Click" Style="{StaticResource ProPrimaryButtonStyle}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundChromeLowBrush}" Opacity="0.5" Margin="0,0,0,16"/>
+
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

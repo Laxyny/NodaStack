@@ -13,11 +13,65 @@ namespace NodaStack.Pages
     {
         private ConfigurationManager configManager;
 
+        private UpdateManager _updateManager;
+
         public SettingsPage()
         {
             InitializeComponent();
             configManager = new ConfigurationManager();
+            _updateManager = new UpdateManager();
             LoadSettings();
+        }
+
+        public async void StartAutoUpdate()
+        {
+             CheckUpdates_Click(null, null);
+        }
+
+        private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            CheckUpdatesButton.IsEnabled = false;
+            UpdateStatusText.Text = "Checking for updates...";
+            UpdateProgressBar.Visibility = Visibility.Visible;
+            UpdateProgressBar.IsIndeterminate = true;
+
+            try
+            {
+                var (hasUpdate, info) = await _updateManager.CheckForUpdatesAsync();
+
+                UpdateProgressBar.IsIndeterminate = false;
+                UpdateProgressBar.Value = 0;
+
+                if (hasUpdate && info != null)
+                {
+                    UpdateStatusText.Text = $"New version found: {info.Version}. Downloading...";
+                    CheckUpdatesButton.Content = "Downloading...";
+                    
+                    var progress = new Progress<double>(p => UpdateProgressBar.Value = p);
+                    await _updateManager.DownloadAndInstallAsync(info, progress);
+                }
+                else
+                {
+                    UpdateStatusText.Text = "You are up to date.";
+                    UpdateProgressBar.Visibility = Visibility.Collapsed;
+                    CheckUpdatesButton.Content = "Check for Updates";
+                    
+                    await Task.Delay(2000);
+                    UpdateStatusText.Text = "Check for the latest version of NodaStack.";
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusText.Text = "Error checking updates.";
+                MessageBox.Show(ex.Message, "Update Error");
+                UpdateProgressBar.Visibility = Visibility.Collapsed;
+            }
+            finally
+            {
+                CheckUpdatesButton.IsEnabled = true;
+                if (CheckUpdatesButton.Content.ToString() == "Downloading...")
+                     CheckUpdatesButton.Content = "Check for Updates";
+            }
         }
 
         private void LoadSettings()

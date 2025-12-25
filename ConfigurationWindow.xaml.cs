@@ -340,14 +340,14 @@ namespace NodaStack
         {
             try
             {
-                var updateChecker = new UpdateChecker();
-                var updateInfo = await updateChecker.CheckForUpdatesAsync();
+                var updateManager = new UpdateManager();
+                var (hasUpdate, info) = await updateManager.CheckForUpdatesAsync();
 
-                if (updateInfo != null)
+                if (info != null)
                 {
-                    LatestVersionText.Text = updateInfo.Version;
+                    LatestVersionText.Text = info.Version;
 
-                    if (updateInfo.IsUpdateAvailable)
+                    if (hasUpdate)
                     {
                         LatestVersionText.Foreground = new SolidColorBrush(Colors.Green);
                         DownloadUpdateButton.Visibility = Visibility.Visible;
