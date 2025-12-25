@@ -58,15 +58,23 @@ namespace NodaStack
             }
 
             // Init System Tray
-            InitializeSystemTray();
+                InitializeSystemTray();
 
             // Init Pages
-            _dashboardPage = new DashboardPage(projectManager);
-            _dashboardPage.ServiceToggleRequested += DashboardPage_ServiceToggleRequested;
-            _monitoringPage = new MonitoringPage();
-            _backupPage = new BackupPage();
-            _settingsPage = new SettingsPage();
-
+            try
+            {
+                _dashboardPage = new DashboardPage(projectManager);
+                _dashboardPage.ServiceToggleRequested += DashboardPage_ServiceToggleRequested;
+                _monitoringPage = new MonitoringPage();
+                _backupPage = new BackupPage();
+                _settingsPage = new SettingsPage();
+                }
+                catch (Exception ex)
+                {
+                MessageBox.Show($"Error initializing pages: {ex.Message}\n{ex.InnerException?.Message}", "Startup Error");
+                // Continue or exit? If pages fail, app is broken.
+            }
+            
             // Start Minimized
             if (config.Settings.StartMinimized)
             {
@@ -234,11 +242,11 @@ namespace NodaStack
                 {
                     await Task.Delay(1000);
                     if (await IsContainerRunning("nodastack_apache"))
-                    {
-                        apacheIsRunning = true;
-                    }
-                    else
-                    {
+                {
+                    apacheIsRunning = true;
+            }
+            else
+            {
                         apacheIsRunning = false;
                         string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_apache");
                         MessageBox.Show($"Apache failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -252,7 +260,7 @@ namespace NodaStack
             else
             {
                 await StopContainer("nodastack_apache");
-                apacheIsRunning = false;
+                    apacheIsRunning = false;
             }
             UpdateDashboardState();
         }
@@ -276,7 +284,7 @@ namespace NodaStack
                     phpIsRunning = true;
             }
             else
-            {
+                {
                     phpIsRunning = false;
                         string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_php");
                         MessageBox.Show($"PHP failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -298,8 +306,8 @@ namespace NodaStack
         private async Task ToggleMysql()
         {
             var config = configManager.GetConfiguration();
-            if (!mysqlIsRunning)
-            {
+                if (!mysqlIsRunning)
+                {
                 await StopContainer("nodastack_mysql");
 
                 bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.MySqlPort}:3306 -e MYSQL_ROOT_PASSWORD=root --name nodastack_mysql nodastack_mysql");
@@ -312,7 +320,7 @@ namespace NodaStack
                     mysqlIsRunning = true;
             }
             else
-                    {
+            {
                         mysqlIsRunning = false;
                         string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_mysql");
                         MessageBox.Show($"MySQL failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
