@@ -13,10 +13,10 @@ namespace NodaStack.Pages
         
         private ProjectManager _projectManager;
 
-        public DashboardPage()
+        public DashboardPage(ProjectManager? manager = null)
         {
             InitializeComponent();
-            _projectManager = new ProjectManager();
+            _projectManager = manager ?? new ProjectManager();
             LoadProjects();
         }
 

@@ -37,20 +37,42 @@ namespace NodaStack
             InitializeComponent();
 
             // Init Managers
-            ThemeManager.Initialize(false);
             configManager = new ConfigurationManager();
             projectManager = new ProjectManager();
             logManager = new LogManager();
+
+            // Apply Settings
+            var config = configManager.GetConfiguration();
+            
+            // Theme
+            ThemeManager.Initialize(false);
+            if (config.Settings.DarkMode)
+            {
+                ThemeManager.IsDarkTheme = true;
+            }
+
+            // Projects Path
+            if (!string.IsNullOrEmpty(config.Settings.ProjectsPath))
+            {
+                projectManager.UpdateProjectsPath(config.Settings.ProjectsPath);
+            }
 
             // Init System Tray
             InitializeSystemTray();
 
             // Init Pages
-            _dashboardPage = new DashboardPage();
+            _dashboardPage = new DashboardPage(projectManager);
             _dashboardPage.ServiceToggleRequested += DashboardPage_ServiceToggleRequested;
             _monitoringPage = new MonitoringPage();
             _backupPage = new BackupPage();
             _settingsPage = new SettingsPage();
+
+            // Start Minimized
+            if (config.Settings.StartMinimized)
+            {
+                this.WindowState = WindowState.Minimized;
+                this.Hide();
+            }
 
             // Initial Check
             CheckInitialContainerStatus();
@@ -222,7 +244,7 @@ namespace NodaStack
                     phpIsRunning = true;
             }
             else
-                {
+            {
                     phpIsRunning = false;
                         string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_php");
                         MessageBox.Show($"PHP failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -236,7 +258,7 @@ namespace NodaStack
             else
             {
                 await StopContainer("nodastack_php");
-                phpIsRunning = false;
+                    phpIsRunning = false;
             }
             UpdateDashboardState();
         }
@@ -244,8 +266,8 @@ namespace NodaStack
         private async Task ToggleMysql()
         {
             var config = configManager.GetConfiguration();
-                if (!mysqlIsRunning)
-                {
+            if (!mysqlIsRunning)
+            {
                 await StopContainer("nodastack_mysql");
 
                 bool success = await RunProcessAsync($"docker run -d --restart=unless-stopped -p {config.MySqlPort}:3306 -e MYSQL_ROOT_PASSWORD=root --name nodastack_mysql nodastack_mysql");
@@ -254,11 +276,11 @@ namespace NodaStack
                 {
                     await Task.Delay(2000); 
                     if (await IsContainerRunning("nodastack_mysql"))
-                    {
-                        mysqlIsRunning = true;
+                {
+                    mysqlIsRunning = true;
             }
             else
-            {
+                    {
                         mysqlIsRunning = false;
                         string logs = await GetProcessOutputAsync("docker logs --tail 5 nodastack_mysql");
                         MessageBox.Show($"MySQL failed to start. Logs:\n{logs}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -470,9 +492,9 @@ namespace NodaStack
                 
                 // Check MailHog
                 if (await IsContainerRunning("nodastack_mailhog")) mailhogIsRunning = true;
-            }
-            catch (Exception ex)
-            {
+                }
+                catch (Exception ex)
+                {
                 Debug.WriteLine("Error checking container status: " + ex.Message);
             }
             
