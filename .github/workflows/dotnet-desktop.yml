@@ -59,7 +59,7 @@ jobs:
         run: dotnet restore $env:Solution_Name
 
       - name: Build the application
-        run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
+        run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore /p:Version=${{ steps.set-version.outputs.version }}
         env:
           Configuration: ${{ matrix.configuration }}
 

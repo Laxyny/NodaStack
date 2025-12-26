@@ -126,15 +126,29 @@ namespace NodaStack
             _notifyIcon = new System.Windows.Forms.NotifyIcon();
             try 
             {
-                 // Load icon from file since we are in a direct file context mostly
-                 if (File.Exists("Assets/NodaStackLogo.ico"))
+                 // Load icon using absolute path from BaseDirectory to support installed version
+                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                 string iconPath = Path.Combine(baseDir, "Assets", "NodaStackLogo.ico");
+                 
+                 if (File.Exists(iconPath))
+                 {
+                    _notifyIcon.Icon = new System.Drawing.Icon(iconPath);
+                 }
+                 else if (File.Exists("Assets/NodaStackLogo.ico")) // Fallback for dev
+                 {
                     _notifyIcon.Icon = new System.Drawing.Icon("Assets/NodaStackLogo.ico");
-                 else
-                    _notifyIcon.Text = "NodaStack (No Icon)"; // Fallback
-            } 
-            catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to load tray icon: " + ex.Message);
+            }
             
-            _notifyIcon.Visible = true;
+            if (_notifyIcon.Icon != null)
+            {
+                _notifyIcon.Visible = true;
+            }
+            
             _notifyIcon.Text = "NodaStack - Local Server Environment";
             _notifyIcon.DoubleClick += (s, args) => 
             {
@@ -161,7 +175,8 @@ namespace NodaStack
         
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (!_isExiting && configManager.GetConfiguration().Settings.MinimizeToTray)
+            // Only minimize if option is enabled AND the tray icon is actually working/visible
+            if (!_isExiting && configManager.GetConfiguration().Settings.MinimizeToTray && _notifyIcon.Visible)
             {
                 e.Cancel = true;
                 this.Hide();

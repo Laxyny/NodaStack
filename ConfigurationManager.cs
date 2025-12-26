@@ -15,7 +15,16 @@ namespace NodaStack
 
         public ConfigurationManager()
         {
-            configPath = Path.Combine(Directory.GetCurrentDirectory(), CONFIG_FILE);
+            // Use AppData/Roaming to ensure write permissions even when installed in Program Files
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var configDir = Path.Combine(appData, "NodaStack");
+            
+            if (!Directory.Exists(configDir))
+            {
+                Directory.CreateDirectory(configDir);
+            }
+
+            configPath = Path.Combine(configDir, CONFIG_FILE);
             LoadConfiguration();
         }
 
