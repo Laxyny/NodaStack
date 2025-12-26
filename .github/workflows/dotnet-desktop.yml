@@ -47,8 +47,8 @@ jobs:
         shell: pwsh
         run: |
           $ver = "$(Get-Date -Format 'yyyy.MM.dd').${{ github.run_number }}"
-          echo "version=$ver"    >> $GITHUB_OUTPUT
-          echo "tag_name=v$ver"  >> $GITHUB_OUTPUT
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag_name=v$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Export build version
         shell: pwsh
@@ -59,7 +59,7 @@ jobs:
         run: dotnet restore $env:Solution_Name
 
       - name: Build the application
-        run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore /p:Version=${{ steps.set-version.outputs.version }}
+        run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore /p:Version=$env:NODASTACK_BUILD_VERSION
         env:
           Configuration: ${{ matrix.configuration }}
 
