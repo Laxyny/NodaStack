@@ -31,6 +31,9 @@ namespace NodaStack
         private bool mysqlIsRunning = false;
         private bool phpmyadminIsRunning = false;
         private bool mailhogIsRunning = false;
+        
+        // Flag to control shutdown vs minimize
+        private bool _isExiting = false;
 
         public MainWindow()
         {
@@ -156,15 +159,33 @@ namespace NodaStack
             base.OnStateChanged(e);
         }
         
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!_isExiting && configManager.GetConfiguration().Settings.MinimizeToTray)
+            {
+                e.Cancel = true;
+                this.Hide();
+                
+                // Show a notification balloon tip to inform user
+                if (configManager.GetConfiguration().Settings.ShowTrayNotifications)
+                {
+                    _notifyIcon.ShowBalloonTip(3000, "NodaStack Minimized", "NodaStack is running in the background.", System.Windows.Forms.ToolTipIcon.Info);
+                }
+            }
+            base.OnClosing(e);
+        }
+        
         protected override void OnClosed(EventArgs e)
         {
             _notifyIcon.Visible = false;
             _notifyIcon.Dispose();
             base.OnClosed(e);
+            Application.Current.Shutdown();
         }
 
         private void CleanupAndExit()
         {
+            _isExiting = true;
             _notifyIcon.Visible = false;
             _notifyIcon.Dispose();
             Application.Current.Shutdown();

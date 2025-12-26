@@ -25,7 +25,7 @@
     "AutoCheckUpdates": true,
     "AutoInstallUpdates": false,
     "Language": "en",
-    "MinimizeToTray": true,
+    "MinimizeToTray": false,
     "StartMinimized": false,
     "ShowTrayNotifications": true,
     "AutoStartDocker": false,

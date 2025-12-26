@@ -125,22 +125,49 @@ namespace NodaStack.Pages
         {
             try
             {
+                // Validate and Get Ports
+                int GetPort(ModernWpf.Controls.NumberBox box, int defaultPort)
+                {
+                    if (double.IsNaN(box.Value)) return defaultPort;
+                    return (int)box.Value;
+                }
+
+                int apache = GetPort(ApachePortBox, 8080);
+                int php = GetPort(PhpPortBox, 8000);
+                int mysql = GetPort(MysqlPortBox, 3306);
+                int pma = GetPort(PmaPortBox, 8081);
+                int mailhogWeb = GetPort(MailHogWebPortBox, 8025);
+
+                if (apache < 1 || apache > 65535 || php < 1 || php > 65535 || 
+                    mysql < 1 || mysql > 65535 || pma < 1 || pma > 65535 || 
+                    mailhogWeb < 1 || mailhogWeb > 65535)
+                {
+                    MessageBox.Show("All ports must be between 1 and 65535.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 var newPorts = new Dictionary<string, int>
                 {
-                    { "Apache", (int)ApachePortBox.Value },
-                    { "PHP", (int)PhpPortBox.Value },
-                    { "MySQL", (int)MysqlPortBox.Value },
-                    { "phpMyAdmin", (int)PmaPortBox.Value },
-                    { "MailHogWeb", (int)MailHogWebPortBox.Value },
+                    { "Apache", apache },
+                    { "PHP", php },
+                    { "MySQL", mysql },
+                    { "phpMyAdmin", pma },
+                    { "MailHogWeb", mailhogWeb },
                     { "MailHogSMTP", configManager.Configuration.Ports.TryGetValue("MailHogSMTP", out int smtp) ? smtp : 1025 }
                 };
                 configManager.UpdatePorts(newPorts);
 
+                // Update Settings
                 var settings = configManager.Configuration.Settings;
                 settings.AutoStartServices = AutoStartSwitch.IsOn;
                 settings.DarkMode = DarkModeSwitch.IsOn;
-                settings.ProjectsPath = ProjectsPathBox.Text;
                 
+                // Validate Projects Path
+                if (!string.IsNullOrWhiteSpace(ProjectsPathBox.Text))
+                {
+                    settings.ProjectsPath = ProjectsPathBox.Text;
+                }
+
                 settings.MinimizeToTray = MinimizeToTraySwitch.IsOn;
                 settings.StartMinimized = StartMinimizedSwitch.IsOn;
                 settings.KeepDockerRunning = KeepDockerRunningSwitch.IsOn;
@@ -155,11 +182,12 @@ namespace NodaStack.Pages
                 }
 
                 StatusText.Text = "Settings saved successfully!";
+                MessageBox.Show("Settings saved successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
                 _ = Task.Delay(3000).ContinueWith(_ => Dispatcher.Invoke(() => StatusText.Text = ""));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving: {ex.Message}", "Error");
+                MessageBox.Show($"Error saving settings: {ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
