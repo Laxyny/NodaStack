@@ -138,6 +138,15 @@ namespace NodaStack
                  {
                     _notifyIcon.Icon = new System.Drawing.Icon("Assets/NodaStackLogo.ico");
                 }
+                else
+                {
+                    // Ultimate fallback: Use the application's own executable icon
+                    var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                    if (!string.IsNullOrEmpty(exePath))
+                    {
+                        _notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                    }
+                }
             }
             catch (Exception ex)
             {

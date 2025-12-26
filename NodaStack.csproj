@@ -31,6 +31,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\NodaStackLogo.ico" />
+    <Content Include="Assets\NodaStackLogo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
