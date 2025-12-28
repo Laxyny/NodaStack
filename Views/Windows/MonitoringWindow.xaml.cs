@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using NodaStack.Services;
+using NodaStack.Helpers;
 using NodaStack.Core.Models;
-using NodaStack.Converters;
-using static NodaStack.NotificationManager;
+using static NodaStack.Services.NotificationManager;
 
-namespace NodaStack
+namespace NodaStack.Views.Windows
 {
     public partial class MonitoringWindow : Window
     {

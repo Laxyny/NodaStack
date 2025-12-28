@@ -2,7 +2,7 @@ using System;
 using System.Windows.Forms;
 using System.Drawing;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public static class NotificationManager
     {

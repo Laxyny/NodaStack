@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using static NodaStack.NotificationManager;
+using NodaStack.Services;
+using NodaStack.Core.Models;
+using static NodaStack.Services.NotificationManager;
 
-namespace NodaStack
+namespace NodaStack.Views.Windows
 {
     public partial class BackupWindow : Window
     {

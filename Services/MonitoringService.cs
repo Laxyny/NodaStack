@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualBasic.Devices;
 using NodaStack.Core.Models;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public class MonitoringService : IDisposable
     {

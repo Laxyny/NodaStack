@@ -4,7 +4,7 @@ using System.Windows.Media;
 using System.Windows.Controls;
 using ModernWpf;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public static class ThemeManager
     {

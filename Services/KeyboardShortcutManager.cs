@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public class KeyboardShortcutManager
     {

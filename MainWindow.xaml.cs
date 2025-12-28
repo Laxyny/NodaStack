@@ -6,6 +6,10 @@ using System.Windows;
 using System.Windows.Controls;
 using ModernWpf.Controls;
 using NodaStack.Pages;
+using NodaStack.Services;
+using NodaStack.Helpers;
+using NodaStack.Views.Windows;
+using NodaStack.Core.Models;
 
 namespace NodaStack
 {
@@ -507,7 +511,7 @@ namespace NodaStack
             });
         }
 
-        public async Task BuildDockerImages(IProgress<string> progress = null)
+        public async Task BuildDockerImages(IProgress<string>? progress = null)
         {
             // Determine root path (where Docker folder is)
             string appDir = AppDomain.CurrentDomain.BaseDirectory;

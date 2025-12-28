@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
-namespace NodaStack
+namespace NodaStack.Helpers
 {
     public static class PortChecker
     {

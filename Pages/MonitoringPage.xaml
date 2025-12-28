@@ -4,7 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.modernwpf.com/2019"
-      xmlns:converters="clr-namespace:NodaStack.Converters"
+      xmlns:converters="clr-namespace:NodaStack.Helpers"
       xmlns:local="clr-namespace:NodaStack"
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1200"
@@ -13,7 +13,7 @@
     <Page.Resources>
         <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
         <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter"/>
-        <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
+        <converters:BytesToStringConverter x:Key="BytesToStringConverter"/>
     </Page.Resources>
 
     <ScrollViewer Padding="24,0,24,24">

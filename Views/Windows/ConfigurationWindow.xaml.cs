@@ -9,8 +9,11 @@ using System.Threading;
 using System.IO;
 using System.Reflection;
 using System.Diagnostics;
+using NodaStack.Services;
+using NodaStack.Helpers;
+using NodaStack.Core.Models;
 
-namespace NodaStack
+namespace NodaStack.Views.Windows
 {
     public partial class ConfigurationWindow : Window
     {

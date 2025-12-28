@@ -4,6 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using ModernWpf.Controls;
 using System.Diagnostics;
+using NodaStack.Services;
+using NodaStack.Helpers;
+using NodaStack.Core.Models;
 
 namespace NodaStack.Pages
 {

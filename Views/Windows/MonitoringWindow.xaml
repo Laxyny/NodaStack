@@ -1,8 +1,8 @@
-<Window x:Class="NodaStack.MonitoringWindow"
+<Window x:Class="NodaStack.Views.Windows.MonitoringWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.modernwpf.com/2019"
-        xmlns:converters="clr-namespace:NodaStack.Converters"
+        xmlns:converters="clr-namespace:NodaStack.Helpers"
         xmlns:local="clr-namespace:NodaStack"
         Title="NodaStack Monitoring"
         Height="750"
@@ -19,7 +19,7 @@
         <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
         <converters:CpuUsageToColorConverter x:Key="CpuUsageToColorConverter"/>
         <converters:MemoryUsageToColorConverter x:Key="MemoryUsageToColorConverter"/>
-        <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
+        <converters:BytesToStringConverter x:Key="BytesToStringConverter"/>
     </Window.Resources>
 
     <Grid Margin="24">

@@ -4,6 +4,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using NodaStack.Services;
+using NodaStack.Core.Models;
 using ModernWpf.Controls;
 
 namespace NodaStack.Pages

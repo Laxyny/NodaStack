@@ -4,13 +4,14 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:helpers="clr-namespace:NodaStack.Helpers"
       xmlns:local="clr-namespace:NodaStack"
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1200"
       Title="Backups">
 
     <Page.Resources>
-        <local:BytesToStringConverter x:Key="BytesToStringConverter"/>
+        <helpers:BytesToStringConverter x:Key="BytesToStringConverter"/>
     </Page.Resources>
 
     <ScrollViewer Padding="24,0,24,24">

@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public class BackupManager
     {

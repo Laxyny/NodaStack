@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace NodaStack
+namespace NodaStack.Helpers
 {
     public class BytesToStringConverter : IValueConverter
     {

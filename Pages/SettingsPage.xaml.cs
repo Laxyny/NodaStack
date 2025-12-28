@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using ModernWpf.Controls;
 using System.Diagnostics;
 using System.Reflection;
+using NodaStack.Services;
+using NodaStack.Views.Windows;
+using NodaStack.Core.Models;
 
 namespace NodaStack.Pages
 {

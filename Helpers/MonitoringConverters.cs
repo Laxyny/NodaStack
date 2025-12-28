@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace NodaStack.Converters
+namespace NodaStack.Helpers
 {
     public class BoolToColorConverter : IValueConverter
     {

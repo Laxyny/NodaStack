@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public class ConfigurationManager
     {

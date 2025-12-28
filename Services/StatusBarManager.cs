@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace NodaStack
+namespace NodaStack.Services
 {
     public class StatusBarManager : IDisposable
     {
